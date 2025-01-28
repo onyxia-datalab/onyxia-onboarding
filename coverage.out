@@ -1,0 +1,6 @@
+mode: set
+github.com/onyxia-datalab/onyxia-onboarding/cmd/onboarding/onyxia-onboarding.go:10.13,14.58 3 0
+github.com/onyxia-datalab/onyxia-onboarding/cmd/onboarding/onyxia-onboarding.go:14.58,16.3 1 0
+github.com/onyxia-datalab/onyxia-onboarding/cmd/onboarding/onyxia-onboarding.go:17.2,17.33 1 0
+github.com/onyxia-datalab/onyxia-onboarding/internal/cov/cov.go:3.19,5.2 1 1
+github.com/onyxia-datalab/onyxia-onboarding/internal/cov/cov.go:7.22,9.2 1 0
