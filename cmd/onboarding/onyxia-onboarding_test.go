@@ -1,40 +1,43 @@
 package main
 
 import (
-	"log"
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/onyxia-datalab/onyxia-onboarding/api"
+	"github.com/stretchr/testify/assert"
 )
 
-// setupRouter initializes the router for the application.
-func setupRouter() *http.ServeMux {
-	router := http.NewServeMux()
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := w.Write([]byte("Hello World!")); err != nil {
-			log.Printf("Failed to write response: %v", err)
-		}
-	})
-	return router
+func strPtr(s string) *string {
+	return &s
 }
 
-func TestHelloWorld(t *testing.T) {
+// setupRouter initializes the router for the application.
+func setupRouter() *chi.Mux {
+	r := chi.NewRouter()
+	server := api.NewServer()
+	api.HandlerFromMux(server, r)
+	return r
+}
+
+func TestOnboardingEndpoint(t *testing.T) {
 	router := setupRouter() // No need to import since it’s in the same package
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatalf("Failed to create request: %v", err)
-	}
+	requestBody, _ := json.Marshal(api.OnboardingRequest{
+		Group: strPtr("test-group"),
+	})
+
+	req, err := http.NewRequest("POST", "/onboarding", bytes.NewBuffer(requestBody))
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
+
 	router.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusOK {
-		t.Errorf("Expected status 200, got %d", rr.Code)
-	}
-
-	expected := "Hello World!"
-	if rr.Body.String() != expected {
-		t.Errorf("Expected body %q, got %q", expected, rr.Body.String())
-	}
+	assert.Equal(t, http.StatusOK, rr.Code) // Ensure 200 OK
 }
