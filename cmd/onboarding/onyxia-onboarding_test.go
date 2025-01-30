@@ -45,6 +45,7 @@ func TestCORS(t *testing.T) {
 
 	req.Header.Set("Origin", "http://example.com")
 	req.Header.Set("Access-Control-Request-Method", "GET")
+	req.Header.Set("Access-Control-Request-Headers", "Content-Type")
 
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
