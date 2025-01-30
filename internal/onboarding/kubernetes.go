@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/onyxia-datalab/onyxia-onboarding/internal/oas"
+	"github.com/onyxia-datalab/onyxia-onboarding/internal/security"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -30,7 +31,7 @@ func NewKubernetesOnboarder(namespaceCreator NamespaceCreator, namespacePrefix s
 var _ oas.Handler = (*kubernetesOnboarder)(nil)
 
 func (s *kubernetesOnboarder) Onboard(ctx context.Context, req *oas.OnboardingRequest) (oas.OnboardRes, error) {
-	user := ctx.Value("user")
+	user := ctx.Value(security.UserContextKey)
 	if user == nil {
 		return &oas.OnboardUnauthorized{}, nil
 	}

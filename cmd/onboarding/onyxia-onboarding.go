@@ -51,7 +51,14 @@ func main() {
 		panic(err)
 	}
 
-	srv, err := oas.NewServer(onboarding.NewKubernetesOnboarder(clientset.CoreV1().Namespaces(), cfg.NamespacePrefix), auth)
+	srv, err := oas.NewServer(
+		onboarding.NewKubernetesOnboarder(
+			clientset.CoreV1().Namespaces(),
+			cfg.NamespacePrefix,
+		),
+		auth,
+	)
+
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +77,11 @@ func getKubernetesClientSet() (*kubernetes.Clientset, error) {
 
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		kubeconfig = flag.String(
+			"kubeconfig",
+			filepath.Join(home, ".kube", "config"),
+			"(optional) absolute path to the kubeconfig file",
+		)
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}

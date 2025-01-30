@@ -16,6 +16,10 @@ issues:
       linters:
         - dupl
         - lll
+    - path: tools/
+      linters:
+        - typecheck
+
 linters:
   disable-all: true
   enable:

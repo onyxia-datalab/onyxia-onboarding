@@ -8,6 +8,12 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/internal/oas"
 )
 
+type contextKey int
+
+const (
+	UserContextKey contextKey = iota
+)
+
 type oidcAuth struct {
 	UsernameClaim string
 	Verifier      *oidc.IDTokenVerifier
@@ -56,5 +62,5 @@ func (a *oidcAuth) HandleOidc(ctx context.Context, operation string, req oas.Oid
 		return ctx, fmt.Errorf("unknown format for claim %q", a.UsernameClaim)
 	}
 
-	return context.WithValue(ctx, "user", user), nil
+	return context.WithValue(ctx, UserContextKey, user), nil
 }
