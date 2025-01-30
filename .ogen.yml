@@ -1,0 +1,9 @@
+generator:
+  features:
+    disable_all: true
+    enable:
+      - "paths/server"
+      - "webhooks/server"
+      - "server/response/validation"
+      - "ogen/unimplemented"
+      - "ogen/otel"
