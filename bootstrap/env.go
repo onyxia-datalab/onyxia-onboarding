@@ -56,7 +56,7 @@ func NewEnv() *Env {
 
 	// Map the environment variables to the Env struct
 	if err := viper.Unmarshal(&env); err != nil {
-		log.Fatal("Environment can't be loaded: ", err)
+		panic(err)
 	}
 
 	return &env

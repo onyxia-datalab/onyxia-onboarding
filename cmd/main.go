@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/cors"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/onyxia-datalab/onyxia-onboarding/api/route"
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
 )
 
@@ -33,13 +34,9 @@ func main() {
 		MaxAge:           300,
 	}).Handler)
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := w.Write([]byte("Hello World!")); err != nil {
-			log.Printf("Failed to write response: %v", err)
-		}
-	})
+	route.Setup(env, r)
 
-	if err := http.ListenAndServe(":3000", r); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
