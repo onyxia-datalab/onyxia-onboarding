@@ -22,5 +22,5 @@ func SetupOnboardingRoutes(env *bootstrap.Env, router chi.Router, auth api.Secur
 		panic(err)
 	}
 
-	router.Mount("/api/v1", http.HandlerFunc(srv.ServeHTTP))
+	router.Mount("/", http.HandlerFunc(srv.ServeHTTP))
 }

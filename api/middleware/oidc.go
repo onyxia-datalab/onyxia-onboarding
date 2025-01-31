@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
@@ -19,9 +20,20 @@ type oidcAuth struct {
 	Verifier      *oidc.IDTokenVerifier
 }
 
-var _ api.SecurityHandler = (*oidcAuth)(nil)
+type noAuth struct{}
 
-func OidcMiddleware(ctx context.Context, issuerUri string, clientId string, usernameClaim string) (*oidcAuth, error) {
+var (
+	_ api.SecurityHandler = (*oidcAuth)(nil)
+	_ api.SecurityHandler = (*noAuth)(nil)
+)
+
+func OidcMiddleware(ctx context.Context, authenticationMode string, issuerUri string, clientId string, usernameClaim string) (api.SecurityHandler, error) {
+
+	if authenticationMode == "none" {
+		log.Println("🚀 Running in No-Auth Mode")
+		return &noAuth{}, nil
+	}
+
 	oidcProvider, err := oidc.NewProvider(ctx, issuerUri)
 	if err != nil {
 		return nil, err
@@ -63,4 +75,9 @@ func (a *oidcAuth) HandleOidc(ctx context.Context, operation string, req api.Oid
 	}
 
 	return context.WithValue(ctx, UserContextKey, user), nil
+}
+
+func (n *noAuth) HandleOidc(ctx context.Context, operation string, req api.Oidc) (context.Context, error) {
+	log.Println("⚠️ No-Auth Mode: Skipping authentication.")
+	return context.WithValue(ctx, UserContextKey, "anonymous"), nil
 }

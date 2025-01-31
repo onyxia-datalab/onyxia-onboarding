@@ -5,5 +5,5 @@ type OnboardingRequest struct {
 }
 
 type OnboardingService interface {
-	Onboard(req OnboardingRequest) (string, error)
+	Onboard(req OnboardingRequest) error
 }

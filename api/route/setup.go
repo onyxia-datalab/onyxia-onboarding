@@ -12,6 +12,7 @@ import (
 func Setup(env *bootstrap.Env, r *chi.Mux) {
 
 	auth, err := middleware.OidcMiddleware(context.Background(),
+		env.AuthenticationMode,
 		env.OIDC.IssuerURI,
 		env.OIDC.ClientID,
 		env.OIDC.UsernameClaim,
