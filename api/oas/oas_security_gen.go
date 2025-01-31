@@ -34,7 +34,7 @@ func findAuthorization(h http.Header, prefix string) (string, bool) {
 }
 
 var oauth2ScopesOidc = map[string][]string{
-	OnboardOperation: []string{},
+	OnboardOperation: {},
 }
 
 func (s *Server) securityOidc(ctx context.Context, operationName OperationName, req *http.Request) (context.Context, bool, error) {
