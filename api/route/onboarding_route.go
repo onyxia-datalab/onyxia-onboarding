@@ -11,14 +11,13 @@ import (
 )
 
 // SetupOnboardingRoutes initializes onboarding-related routes.
-func SetupOnboardingRoutes(env *bootstrap.Env, router chi.Router) {
+func SetupOnboardingRoutes(env *bootstrap.Env, router chi.Router, auth api.SecurityHandler) {
 
 	usecase := usecase.NewOnboardingUsecase()
-
 	controller := controller.NewOnboardingController(usecase)
 
 	// Create the ogen server with the handler
-	srv, err := api.NewServer(controller)
+	srv, err := api.NewServer(controller, auth)
 	if err != nil {
 		panic(err)
 	}

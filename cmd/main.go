@@ -23,8 +23,10 @@ func main() {
 	log.Println("Loaded environment:", string(envJSON))
 
 	r := chi.NewRouter()
+
 	r.Use(middleware.Logger)
 
+	r.Use(middleware.Heartbeat("/"))
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins:   env.Security.CORSAllowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},

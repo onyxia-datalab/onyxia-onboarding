@@ -2,6 +2,31 @@
 
 package api
 
+type Oidc struct {
+	Token  string
+	Scopes []string
+}
+
+// GetToken returns the value of Token.
+func (s *Oidc) GetToken() string {
+	return s.Token
+}
+
+// GetScopes returns the value of Scopes.
+func (s *Oidc) GetScopes() []string {
+	return s.Scopes
+}
+
+// SetToken sets the value of Token.
+func (s *Oidc) SetToken(val string) {
+	s.Token = val
+}
+
+// SetScopes sets the value of Scopes.
+func (s *Oidc) SetScopes(val []string) {
+	s.Scopes = val
+}
+
 // OnboardForbidden is response for Onboard operation.
 type OnboardForbidden struct{}
 
