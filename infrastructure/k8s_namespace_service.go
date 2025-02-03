@@ -13,10 +13,10 @@ import (
 )
 
 type KubernetesNamespaceService struct {
-	clientset *kubernetes.Clientset
+	clientset kubernetes.Interface
 }
 
-func NewKubernetesNamespaceService(clientset *kubernetes.Clientset) domain.NamespaceService {
+func NewKubernetesNamespaceService(clientset kubernetes.Interface) domain.NamespaceService {
 	return &KubernetesNamespaceService{
 		clientset: clientset,
 	}

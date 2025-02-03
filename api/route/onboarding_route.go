@@ -11,7 +11,6 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/usecase"
 )
 
-// SetupOnboardingRoutes initializes onboarding-related routes.
 func SetupOnboardingRoutes(app *bootstrap.Application, router chi.Router, auth api.SecurityHandler) {
 
 	namespaceCreator := infrastructure.NewKubernetesNamespaceService(app.K8sClient.Clientset)
@@ -19,7 +18,6 @@ func SetupOnboardingRoutes(app *bootstrap.Application, router chi.Router, auth a
 	onboardingUsecase := usecase.NewOnboardingUsecase(namespaceCreator)
 	controller := controller.NewOnboardingController(onboardingUsecase)
 
-	// Create the ogen server with the handler
 	srv, err := api.NewServer(controller, auth)
 	if err != nil {
 		panic(err)

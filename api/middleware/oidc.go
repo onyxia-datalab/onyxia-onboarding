@@ -15,9 +15,13 @@ const (
 	UserContextKey contextKey = iota
 )
 
+type TokenVerifier interface {
+	Verify(ctx context.Context, token string) (*oidc.IDToken, error)
+}
+
 type oidcAuth struct {
 	UsernameClaim string
-	Verifier      *oidc.IDTokenVerifier
+	Verifier      TokenVerifier // ✅ Uses an interface now!
 }
 
 type noAuth struct{}
