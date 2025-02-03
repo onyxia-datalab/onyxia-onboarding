@@ -36,7 +36,7 @@ func main() {
 		MaxAge:           300,
 	}).Handler)
 
-	route.Setup(env, r)
+	route.Setup(&app, r)
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("Server failed: %v", err)

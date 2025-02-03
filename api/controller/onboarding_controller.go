@@ -19,7 +19,7 @@ func NewOnboardingController(onboardingUsecase domain.OnboardingService) *Onboar
 func (c *OnboardingController) Onboard(ctx context.Context, req *api.OnboardingRequest) (api.OnboardRes, error) {
 	log.Println("Received Onboarding Request:", req.Group)
 
-	err := c.OnboardingUsecase.Onboard(domain.OnboardingRequest{Group: req.Group})
+	err := c.OnboardingUsecase.Onboard(ctx, domain.OnboardingRequest{Group: req.Group})
 	if err != nil {
 		return &api.OnboardForbidden{}, err
 	}

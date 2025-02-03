@@ -9,13 +9,13 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
 )
 
-func Setup(env *bootstrap.Env, r *chi.Mux) {
+func Setup(app *bootstrap.Application, r *chi.Mux) {
 
 	auth, err := middleware.OidcMiddleware(context.Background(),
-		env.AuthenticationMode,
-		env.OIDC.IssuerURI,
-		env.OIDC.ClientID,
-		env.OIDC.UsernameClaim,
+		app.Env.AuthenticationMode,
+		app.Env.OIDC.IssuerURI,
+		app.Env.OIDC.ClientID,
+		app.Env.OIDC.UsernameClaim,
 	)
 
 	if err != nil {
@@ -23,6 +23,6 @@ func Setup(env *bootstrap.Env, r *chi.Mux) {
 	}
 
 	r.Group(func(r chi.Router) {
-		SetupOnboardingRoutes(env, r, auth)
+		SetupOnboardingRoutes(app, r, auth)
 	})
 }
