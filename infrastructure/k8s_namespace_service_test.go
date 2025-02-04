@@ -52,9 +52,10 @@ func TestCreateNamespace_Failure(t *testing.T) {
 	clientset := fake.NewSimpleClientset()
 	service := NewKubernetesNamespaceService(clientset)
 
-	clientset.PrependReactor("create", "namespaces", func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
-		return true, nil, errors.New("simulated API failure")
-	})
+	clientset.PrependReactor("create", "namespaces",
+		func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
+			return true, nil, errors.New("simulated API failure")
+		})
 
 	err := service.CreateNamespace(context.Background(), "error-namespace")
 	assert.Error(t, err)
