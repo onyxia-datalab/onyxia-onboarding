@@ -15,7 +15,8 @@ type onboardingUsecase struct {
 
 func NewOnboardingUsecase(namespaceService domain.NamespaceService, namespacePrefix string,
 	groupNamespacePrefix string) domain.OnboardingUsecase {
-	return &onboardingUsecase{namespaceService: namespaceService, namespacePrefix: namespacePrefix, groupNamespacePrefix: groupNamespacePrefix}
+	return &onboardingUsecase{namespaceService: namespaceService,
+		namespacePrefix: namespacePrefix, groupNamespacePrefix: groupNamespacePrefix}
 }
 
 func (s *onboardingUsecase) Onboard(ctx context.Context, req domain.OnboardingRequest) error {
