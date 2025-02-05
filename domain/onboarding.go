@@ -9,9 +9,10 @@ type NamespaceService interface {
 }
 
 type OnboardingRequest struct {
-	Group string
+	Group    *string // Use pointer to indicate optional value
+	UserName string
 }
 
-type OnboardingService interface {
+type OnboardingUsecase interface {
 	Onboard(ctx context.Context, req OnboardingRequest) error
 }

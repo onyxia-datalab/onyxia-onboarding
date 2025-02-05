@@ -45,15 +45,61 @@ func (*OnboardUnauthorized) onboardRes() {}
 // Specification on which namespace to create.
 // Ref: #/components/schemas/OnboardingRequest
 type OnboardingRequest struct {
-	Group string `json:"group"`
+	Group OptString `json:"group"`
 }
 
 // GetGroup returns the value of Group.
-func (s *OnboardingRequest) GetGroup() string {
+func (s *OnboardingRequest) GetGroup() OptString {
 	return s.Group
 }
 
 // SetGroup sets the value of Group.
-func (s *OnboardingRequest) SetGroup(val string) {
+func (s *OnboardingRequest) SetGroup(val OptString) {
 	s.Group = val
+}
+
+// NewOptString returns new OptString with value set to v.
+func NewOptString(v string) OptString {
+	return OptString{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptString is optional string.
+type OptString struct {
+	Value string
+	Set   bool
+}
+
+// IsSet returns true if OptString was set.
+func (o OptString) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptString) Reset() {
+	var v string
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptString) SetTo(v string) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptString) Get() (v string, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptString) Or(d string) string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
 }

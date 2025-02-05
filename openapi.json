@@ -39,15 +39,15 @@
           "403": {
             "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          {
+            "oidc": []
+          }
+        ]
       }
     }
   },
-  "security": [
-    {
-      "oidc": []
-    }
-  ],
   "components": {
     "schemas": {
       "OnboardingRequest": {
@@ -57,7 +57,6 @@
             "type": "string"
           }
         },
-        "required": ["group"],
         "description": "Specification on which namespace to create"
       }
     },

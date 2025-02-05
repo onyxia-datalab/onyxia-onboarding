@@ -31,12 +31,18 @@ type K8SPublicEndpoint struct {
 	URL string `mapstructure:"URL" json:"URL"`
 }
 
+type Service struct {
+	NamespacePrefix      string `mapstructure:"namespacePrefix" json:"namespacePrefix"`
+	GroupNamespacePrefix string `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
+}
+
 type Env struct {
 	AppEnv             string            `mapstructure:"appEnv" json:"appEnv"`
 	AuthenticationMode string            `mapstructure:"authenticationMode" json:"authenticationMode"`
 	OIDC               OIDC              `mapstructure:"oidc" json:"oidc"`
 	Security           Security          `mapstructure:"security" json:"security"`
 	K8SPublicEndpoint  K8SPublicEndpoint `mapstructure:"k8sPublicEndpoint" json:"k8sPublicEndpoint"`
+	Service            Service           `mapstructure:"service" json:"service"`
 }
 
 func NewEnv() *Env {

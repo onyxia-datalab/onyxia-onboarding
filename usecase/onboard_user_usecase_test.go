@@ -7,43 +7,85 @@ import (
 
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-// ✅ Fake Namespace Service (Mocks `CreateNamespace`)
-type FakeNamespaceService struct {
-	ShouldFail bool
+// ✅ Ensure `MockNamespaceService` implements `NamespaceService`
+var _ domain.NamespaceService = (*MockNamespaceService)(nil)
+
+// ✅ Mock `NamespaceService` using Testify
+type MockNamespaceService struct {
+	mock.Mock
 }
 
-func (f *FakeNamespaceService) CreateNamespace(ctx context.Context, name string) error {
-	if f.ShouldFail {
-		return errors.New("failed to create namespace")
-	}
-	return nil
+// ✅ Implement `CreateNamespace`
+func (m *MockNamespaceService) CreateNamespace(ctx context.Context, name string) error {
+	args := m.Called(ctx, name)
+	return args.Error(0)
 }
 
-// ✅ Test: Group name is required
-func TestOnboard_EmptyGroupName(t *testing.T) {
-	service := NewOnboardingUsecase(&FakeNamespaceService{})
-
-	err := service.Onboard(context.Background(), domain.OnboardingRequest{Group: ""})
-	assert.Error(t, err)
-	assert.Equal(t, "❌ Group name is required", err.Error())
+// ✅ Setup function for `OnboardingUsecase`
+func setupUsecase(mockService *MockNamespaceService) domain.OnboardingUsecase {
+	return NewOnboardingUsecase(mockService, "user-", "group-")
 }
 
-// ✅ Test: Successful onboarding
-func TestOnboard_Success(t *testing.T) {
-	service := NewOnboardingUsecase(&FakeNamespaceService{ShouldFail: false})
+// ✅ Test: Group is provided → Should create a group namespace
+func TestOnboardingUsecase_Onboard_WithGroup(t *testing.T) {
+	mockService := new(MockNamespaceService)
+	usecase := setupUsecase(mockService)
 
-	err := service.Onboard(context.Background(), domain.OnboardingRequest{Group: "test-group"})
+	groupName := "test-group"
+	expectedNamespace := "group-" + groupName
+
+	// ✅ Mock `CreateNamespace`
+	mockService.On("CreateNamespace", mock.Anything, expectedNamespace).Return(nil)
+
+	req := domain.OnboardingRequest{Group: &groupName, UserName: "test-user"}
+	err := usecase.Onboard(context.Background(), req)
+
 	assert.NoError(t, err)
+
+	// ✅ Ensure `CreateNamespace` was called with the correct namespace
+	mockService.AssertCalled(t, "CreateNamespace", mock.Anything, expectedNamespace)
 }
 
-// ✅ Test: Namespace creation failure
-func TestOnboard_FailedNamespaceCreation(t *testing.T) {
-	service := NewOnboardingUsecase(&FakeNamespaceService{ShouldFail: true})
+// ✅ Test: Group is `nil` → Should create a user namespace
+func TestOnboardingUsecase_Onboard_WithoutGroup(t *testing.T) {
+	mockService := new(MockNamespaceService)
+	usecase := setupUsecase(mockService)
 
-	err := service.Onboard(context.Background(), domain.OnboardingRequest{Group: "test-group"})
+	expectedNamespace := "user-test-user"
+
+	// ✅ Mock `CreateNamespace`
+	mockService.On("CreateNamespace", mock.Anything, expectedNamespace).Return(nil)
+
+	req := domain.OnboardingRequest{Group: nil, UserName: "test-user"}
+	err := usecase.Onboard(context.Background(), req)
+
+	assert.NoError(t, err)
+
+	// ✅ Ensure `CreateNamespace` was called with the correct namespace
+	mockService.AssertCalled(t, "CreateNamespace", mock.Anything, expectedNamespace)
+}
+
+// ❌ Test: `CreateNamespace` fails → Should return an error
+func TestOnboardingUsecase_Onboard_CreateNamespaceFails(t *testing.T) {
+	mockService := new(MockNamespaceService)
+	usecase := setupUsecase(mockService)
+
+	groupName := "test-group"
+	expectedNamespace := "group-" + groupName
+	expectedError := errors.New("namespace creation failed")
+
+	// ❌ Mock `CreateNamespace` failure
+	mockService.On("CreateNamespace", mock.Anything, expectedNamespace).Return(expectedError)
+
+	req := domain.OnboardingRequest{Group: &groupName, UserName: "test-user"}
+	err := usecase.Onboard(context.Background(), req)
+
 	assert.Error(t, err)
-	assert.Equal(t, "failed to create namespace", err.Error())
+	assert.Equal(t, expectedError, err)
 
+	// ✅ Ensure `CreateNamespace` was called
+	mockService.AssertCalled(t, "CreateNamespace", mock.Anything, expectedNamespace)
 }

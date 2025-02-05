@@ -1,6 +1,7 @@
 package route
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,12 +12,12 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/usecase"
 )
 
-func SetupOnboardingRoutes(app *bootstrap.Application, router chi.Router, auth api.SecurityHandler) {
+func SetupOnboardingRoutes(app *bootstrap.Application, router chi.Router, auth api.SecurityHandler, getUser func(ctx context.Context) (string, error)) {
 
 	namespaceCreator := infrastructure.NewKubernetesNamespaceService(app.K8sClient.Clientset)
 
-	onboardingUsecase := usecase.NewOnboardingUsecase(namespaceCreator)
-	controller := controller.NewOnboardingController(onboardingUsecase)
+	onboardingUsecase := usecase.NewOnboardingUsecase(namespaceCreator, app.Env.Service.NamespacePrefix, app.Env.Service.GroupNamespacePrefix)
+	controller := controller.NewOnboardingController(onboardingUsecase, getUser)
 
 	srv, err := api.NewServer(controller, auth)
 	if err != nil {
