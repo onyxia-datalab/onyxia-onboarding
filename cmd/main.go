@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -17,10 +16,6 @@ func main() {
 
 	app := bootstrap.App()
 	env := app.Env
-
-	// Temp code
-	envJSON, _ := json.MarshalIndent(env, "", "  ")
-	log.Println("Loaded environment:", string(envJSON))
 
 	r := chi.NewRouter()
 
