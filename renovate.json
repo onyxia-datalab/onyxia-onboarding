@@ -1,10 +1,11 @@
 {
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "config:recommended",
-        ":disableDependencyDashboard",
-        ":semanticCommits"
-    ],
-    "prHourlyLimit": 30,
-    "prConcurrentLimit": 100
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableDependencyDashboard",
+    ":semanticCommits"
+  ],
+  "prHourlyLimit": 30,
+  "prConcurrentLimit": 100,
+  "postUpdateOptions": ["gomodTidy"]
 }
