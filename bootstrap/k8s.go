@@ -42,7 +42,10 @@ func NewKubernetesClient() *KubernetesClient {
 		log.Fatalf("❌ Failed to create Kubernetes client: %v", err)
 	}
 
-	checkConnectivity(clientset)
+	err = checkConnectivity(clientset)
+	if err != nil {
+		log.Fatalf("❌ Failed to connect to the APIServer : %v", err)
+	}
 
 	return &KubernetesClient{Clientset: clientset}
 }
