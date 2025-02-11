@@ -31,9 +31,32 @@ type K8SPublicEndpoint struct {
 	URL string `mapstructure:"URL" json:"URL"`
 }
 
+type Quota struct {
+	RequestsMemory           string `mapstructure:"requests.memory" json:"requests.memory"`
+	RequestsCPU              string `mapstructure:"requests.cpu" json:"requests.cpu"`
+	LimitsMemory             string `mapstructure:"limits.memory" json:"limits.memory"`
+	LimitsCPU                string `mapstructure:"limits.cpu" json:"limits.cpu"`
+	RequestsStorage          string `mapstructure:"requests.storage" json:"requests.storage"`
+	CountPods                string `mapstructure:"count/pods" json:"count/pods"`
+	RequestsEphemeralStorage string `mapstructure:"requests.ephemeral-storage" json:"requests.ephemeral-storage"`
+	LimitsEphemeralStorage   string `mapstructure:"limits.ephemeral-storage" json:"limits.ephemeral-storage"`
+	RequestsGPU              string `mapstructure:"requests.nvidia.com/gpu" json:"requests.nvidia.com/gpu"`
+	LimitsGPU                string `mapstructure:"limits.nvidia.com/gpu" json:"limits.nvidia.com/gpu"`
+}
+
+type Quotas struct {
+	Enabled      bool  `mapstructure:"enabled" json:"enabled"`
+	Default      Quota `mapstructure:"default" json:"default"`
+	UserEnabled  bool  `mapstructure:"userEnabled" json:"userEnabled"`
+	User         Quota `mapstructure:"user" json:"user"`
+	GroupEnabled bool  `mapstructure:"groupEnabled" json:"groupEnabled"`
+	Group        Quota `mapstructure:"group" json:"group"`
+}
+
 type Service struct {
 	NamespacePrefix      string `mapstructure:"namespacePrefix" json:"namespacePrefix"`
 	GroupNamespacePrefix string `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
+	Quotas               Quotas `mapstructure:"quotas" json:"quotas"`
 }
 
 type Env struct {
