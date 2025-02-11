@@ -1,4 +1,4 @@
-package infrastructure
+package kubernetes
 
 import (
 	"context"
@@ -10,16 +10,16 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	k8s "k8s.io/client-go/kubernetes"
 )
 
 const quotaName string = "onyxia-quota"
 
 type KubernetesNamespaceService struct {
-	clientset kubernetes.Interface
+	clientset k8s.Interface
 }
 
-func NewKubernetesNamespaceService(clientset kubernetes.Interface) interfaces.NamespaceService {
+func NewKubernetesNamespaceService(clientset k8s.Interface) interfaces.NamespaceService {
 	return &KubernetesNamespaceService{
 		clientset: clientset,
 	}

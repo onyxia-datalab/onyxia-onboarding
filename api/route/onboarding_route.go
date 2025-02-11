@@ -9,7 +9,7 @@ import (
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
-	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure"
+	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/kubernetes"
 	"github.com/onyxia-datalab/onyxia-onboarding/usecase"
 )
 
@@ -20,7 +20,7 @@ func SetupOnboardingRoutes(
 	getUser func(ctx context.Context) (string, error),
 ) {
 
-	namespaceCreator := infrastructure.NewKubernetesNamespaceService(app.K8sClient.Clientset)
+	namespaceCreator := kubernetes.NewKubernetesNamespaceService(app.K8sClient.Clientset)
 
 	onboardingUsecase := usecase.NewOnboardingUsecase(
 		namespaceCreator,
