@@ -14,7 +14,11 @@ import (
 // ✅ Test `Onboard` Success (Namespace & Quota Applied)
 func Test_Onboard_Success(t *testing.T) {
 	mockService := new(MockNamespaceService)
-	quotas := domain.Quotas{Enabled: true, GroupEnabled: true, Group: domain.Quota{MemoryRequest: "12Gi"}}
+	quotas := domain.Quotas{
+		Enabled:      true,
+		GroupEnabled: true,
+		Group:        domain.Quota{MemoryRequest: "12Gi"},
+	}
 	usecase := setupUsecase(mockService, quotas)
 
 	mockService.On("CreateNamespace", mock.Anything, groupNamespace).
@@ -86,7 +90,13 @@ func Test_Onboard_ApplyResourceQuotasFails(t *testing.T) {
 
 	assert.Error(t, err)
 	mockService.AssertCalled(t, "CreateNamespace", mock.Anything, defaultNamespace)
-	mockService.AssertCalled(t, "ApplyResourceQuotas", mock.Anything, defaultNamespace, &quotas.Default)
+	mockService.AssertCalled(
+		t,
+		"ApplyResourceQuotas",
+		mock.Anything,
+		defaultNamespace,
+		&quotas.Default,
+	)
 }
 
 // ✅ Test `Onboard` Success (Namespace Already Exists)
@@ -106,7 +116,13 @@ func Test_Onboard_NamespaceAlreadyExists(t *testing.T) {
 
 	assert.NoError(t, err)
 	mockService.AssertCalled(t, "CreateNamespace", mock.Anything, defaultNamespace)
-	mockService.AssertCalled(t, "ApplyResourceQuotas", mock.Anything, defaultNamespace, &quotas.Default)
+	mockService.AssertCalled(
+		t,
+		"ApplyResourceQuotas",
+		mock.Anything,
+		defaultNamespace,
+		&quotas.Default,
+	)
 }
 
 func TestGetNamespace(t *testing.T) {

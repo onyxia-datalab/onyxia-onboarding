@@ -9,9 +9,16 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
-func (s *onboardingUsecase) applyQuotas(ctx context.Context, namespace string, req domain.OnboardingRequest) error {
+func (s *onboardingUsecase) applyQuotas(
+	ctx context.Context,
+	namespace string,
+	req domain.OnboardingRequest,
+) error {
 	if !s.quotas.Enabled {
-		log.Printf("⚠️ Quotas are disabled, skipping quota application for namespace: %s", namespace)
+		log.Printf(
+			"⚠️ Quotas are disabled, skipping quota application for namespace: %s",
+			namespace,
+		)
 		return nil
 	}
 

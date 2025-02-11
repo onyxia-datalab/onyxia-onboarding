@@ -25,7 +25,10 @@ func NewKubernetesNamespaceService(clientset kubernetes.Interface) interfaces.Na
 	}
 }
 
-func (s *KubernetesNamespaceService) CreateNamespace(ctx context.Context, name string) (interfaces.NamespaceCreationResult, error) {
+func (s *KubernetesNamespaceService) CreateNamespace(
+	ctx context.Context,
+	name string,
+) (interfaces.NamespaceCreationResult, error) {
 	namespacesClient := s.clientset.CoreV1().Namespaces()
 
 	namespace := &v1.Namespace{
@@ -45,7 +48,11 @@ func (s *KubernetesNamespaceService) CreateNamespace(ctx context.Context, name s
 	return interfaces.NamespaceCreated, nil
 }
 
-func (s *KubernetesNamespaceService) ApplyResourceQuotas(ctx context.Context, namespace string, quota *domain.Quota) (interfaces.QuotaApplicationResult, error) {
+func (s *KubernetesNamespaceService) ApplyResourceQuotas(
+	ctx context.Context,
+	namespace string,
+	quota *domain.Quota,
+) (interfaces.QuotaApplicationResult, error) {
 	quotasClient := s.clientset.CoreV1().ResourceQuotas(namespace)
 
 	hardLimits := convertQuotaToResourceMap(quota)
@@ -84,7 +91,10 @@ func (s *KubernetesNamespaceService) ApplyResourceQuotas(ctx context.Context, na
 		existingQuota.Spec = resourceQuota.Spec
 		_, updateErr := quotasClient.Update(ctx, existingQuota, metav1.UpdateOptions{})
 		if updateErr != nil {
-			return interfaces.QuotaError, fmt.Errorf("failed to update resource quota: %w", updateErr)
+			return interfaces.QuotaError, fmt.Errorf(
+				"failed to update resource quota: %w",
+				updateErr,
+			)
 		}
 
 		return interfaces.QuotaUpdated, nil
@@ -99,7 +109,10 @@ func (s *KubernetesNamespaceService) ApplyResourceQuotas(ctx context.Context, na
 		return interfaces.QuotaCreated, nil
 	}
 
-	return interfaces.QuotaError, fmt.Errorf("unexpected error checking for existing quota: %w", err)
+	return interfaces.QuotaError, fmt.Errorf(
+		"unexpected error checking for existing quota: %w",
+		err,
+	)
 }
 
 func quotasAreDifferent(existing, newQuota *v1.ResourceQuota) bool {

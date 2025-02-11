@@ -23,9 +23,16 @@ func main() {
 
 	r.Use(middleware.Heartbeat("/"))
 	r.Use(cors.New(cors.Options{
-		AllowedOrigins:   env.Security.CORSAllowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Origin", "X-Requested-With"},
+		AllowedOrigins: env.Security.CORSAllowedOrigins,
+		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders: []string{
+			"Accept",
+			"Authorization",
+			"Content-Type",
+			"X-CSRF-Token",
+			"Origin",
+			"X-Requested-With",
+		},
 		ExposedHeaders:   []string{"Link", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,

@@ -13,14 +13,20 @@ type OnboardingController struct {
 	getUser           func(ctx context.Context) (string, error)
 }
 
-func NewOnboardingController(onboardingUsecase domain.OnboardingUsecase, getUser func(ctx context.Context) (string, error)) *OnboardingController {
+func NewOnboardingController(
+	onboardingUsecase domain.OnboardingUsecase,
+	getUser func(ctx context.Context) (string, error),
+) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: onboardingUsecase,
 		getUser:           getUser,
 	}
 }
 
-func (c *OnboardingController) Onboard(ctx context.Context, req *api.OnboardingRequest) (api.OnboardRes, error) {
+func (c *OnboardingController) Onboard(
+	ctx context.Context,
+	req *api.OnboardingRequest,
+) (api.OnboardRes, error) {
 	log.Printf("🟢 Received Onboarding Request")
 
 	userName, err := c.getUser(ctx)
@@ -37,10 +43,18 @@ func (c *OnboardingController) Onboard(ctx context.Context, req *api.OnboardingR
 		log.Printf("📌 Group provided: %s", req.Group.Value)
 	}
 
-	err = c.OnboardingUsecase.Onboard(ctx, domain.OnboardingRequest{Group: groupPtr, UserName: userName})
+	err = c.OnboardingUsecase.Onboard(
+		ctx,
+		domain.OnboardingRequest{Group: groupPtr, UserName: userName},
+	)
 
 	if err != nil {
-		log.Printf("❌ Onboarding failed | User: %s | Group: %v | Error: %v", userName, groupPtr, err)
+		log.Printf(
+			"❌ Onboarding failed | User: %s | Group: %v | Error: %v",
+			userName,
+			groupPtr,
+			err,
+		)
 		return &api.OnboardForbidden{}, err
 	}
 

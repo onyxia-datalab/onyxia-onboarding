@@ -30,7 +30,10 @@ func fakeGetUserFail(ctx context.Context) (string, error) {
 	return "", errors.New("user retrieval failed")
 }
 
-func setupController(mockUsecase *MockOnboardingUsecase, getUser func(ctx context.Context) (string, error)) *OnboardingController {
+func setupController(
+	mockUsecase *MockOnboardingUsecase,
+	getUser func(ctx context.Context) (string, error),
+) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: mockUsecase,
 		getUser:           getUser,
@@ -89,7 +92,8 @@ func TestOnboardingController_Onboard_GetUserFails(t *testing.T) {
 // ❌ Test: `OnboardingUsecase.Onboard` fails → Should return `OnboardForbidden`
 func TestOnboardingController_Onboard_OnboardingFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUsecase.On("Onboard", mock.Anything, mock.Anything).Return(errors.New("onboarding service error"))
+	mockUsecase.On("Onboard", mock.Anything, mock.Anything).
+		Return(errors.New("onboarding service error"))
 
 	controller := setupController(mockUsecase, fakeGetUser)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}

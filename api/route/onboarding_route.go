@@ -13,7 +13,12 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/usecase"
 )
 
-func SetupOnboardingRoutes(app *bootstrap.Application, router chi.Router, auth api.SecurityHandler, getUser func(ctx context.Context) (string, error)) {
+func SetupOnboardingRoutes(
+	app *bootstrap.Application,
+	router chi.Router,
+	auth api.SecurityHandler,
+	getUser func(ctx context.Context) (string, error),
+) {
 
 	namespaceCreator := infrastructure.NewKubernetesNamespaceService(app.K8sClient.Clientset)
 

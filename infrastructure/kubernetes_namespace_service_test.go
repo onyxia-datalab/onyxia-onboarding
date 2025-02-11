@@ -26,7 +26,9 @@ func TestCreateNamespace_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.NamespaceCreated, result) // ✅ Check the result type
 
-	_, err = clientset.CoreV1().Namespaces().Get(context.Background(), "test-namespace", metav1.GetOptions{})
+	_, err = clientset.CoreV1().
+		Namespaces().
+		Get(context.Background(), "test-namespace", metav1.GetOptions{})
 	assert.NoError(t, err) // ✅ Ensure namespace was actually created
 }
 
@@ -74,7 +76,9 @@ func TestApplyResourceQuotas_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.QuotaCreated, result) // ✅ Ensure quota was created
 
-	createdQuota, err := clientset.CoreV1().ResourceQuotas("test-namespace").Get(context.Background(), quotaName, metav1.GetOptions{})
+	createdQuota, err := clientset.CoreV1().
+		ResourceQuotas("test-namespace").
+		Get(context.Background(), quotaName, metav1.GetOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, quotaName, createdQuota.Name)
 	assert.Equal(t, "onyxia", createdQuota.Labels["createdby"])
@@ -103,7 +107,9 @@ func TestApplyResourceQuotas_UpdateExistingQuota(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.QuotaUpdated, result) // ✅ Ensure update is detected
 
-	updatedQuota, err := clientset.CoreV1().ResourceQuotas("test-namespace").Get(context.Background(), quotaName, metav1.GetOptions{})
+	updatedQuota, err := clientset.CoreV1().
+		ResourceQuotas("test-namespace").
+		Get(context.Background(), quotaName, metav1.GetOptions{})
 	assert.NoError(t, err)
 
 	memoryQuantity, exists := updatedQuota.Spec.Hard[v1.ResourceRequestsMemory]

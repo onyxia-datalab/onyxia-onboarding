@@ -26,21 +26,34 @@ type MockNamespaceService struct {
 
 var _ interfaces.NamespaceService = (*MockNamespaceService)(nil)
 
-func (m *MockNamespaceService) CreateNamespace(ctx context.Context, name string) (interfaces.NamespaceCreationResult, error) {
+func (m *MockNamespaceService) CreateNamespace(
+	ctx context.Context,
+	name string,
+) (interfaces.NamespaceCreationResult, error) {
 	args := m.Called(ctx, name)
 	return args.Get(0).(interfaces.NamespaceCreationResult), args.Error(1)
 }
 
-func (m *MockNamespaceService) ApplyResourceQuotas(ctx context.Context, namespace string, quota *domain.Quota) (interfaces.QuotaApplicationResult, error) {
+func (m *MockNamespaceService) ApplyResourceQuotas(
+	ctx context.Context,
+	namespace string,
+	quota *domain.Quota,
+) (interfaces.QuotaApplicationResult, error) {
 	args := m.Called(ctx, namespace, quota)
 	return args.Get(0).(interfaces.QuotaApplicationResult), args.Error(1)
 }
 
-func setupUsecase(mockService *MockNamespaceService, quotas domain.Quotas) domain.OnboardingUsecase {
+func setupUsecase(
+	mockService *MockNamespaceService,
+	quotas domain.Quotas,
+) domain.OnboardingUsecase {
 	return NewOnboardingUsecase(mockService, namespacePrefix, groupNamespacePref, quotas)
 }
 
-func setupPrivateUsecase(mockService *MockNamespaceService, quotas domain.Quotas) *onboardingUsecase {
+func setupPrivateUsecase(
+	mockService *MockNamespaceService,
+	quotas domain.Quotas,
+) *onboardingUsecase {
 	return &onboardingUsecase{
 		namespaceService:     mockService,
 		namespacePrefix:      namespacePrefix,

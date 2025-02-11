@@ -31,7 +31,13 @@ var (
 	_ api.SecurityHandler = (*noAuth)(nil)
 )
 
-func OidcMiddleware(ctx context.Context, authenticationMode string, issuerUri string, clientId string, usernameClaim string) (api.SecurityHandler, error) {
+func OidcMiddleware(
+	ctx context.Context,
+	authenticationMode string,
+	issuerUri string,
+	clientId string,
+	usernameClaim string,
+) (api.SecurityHandler, error) {
 
 	if authenticationMode == "none" {
 		log.Println("🚀 Running in No-Auth Mode")
@@ -57,7 +63,11 @@ func OidcMiddleware(ctx context.Context, authenticationMode string, issuerUri st
 	}, nil
 }
 
-func (a *oidcAuth) HandleOidc(ctx context.Context, operation string, req api.Oidc) (context.Context, error) {
+func (a *oidcAuth) HandleOidc(
+	ctx context.Context,
+	operation string,
+	req api.Oidc,
+) (context.Context, error) {
 	token, err := a.Verifier.Verify(ctx, req.Token)
 	if err != nil {
 		return ctx, err
@@ -81,7 +91,11 @@ func (a *oidcAuth) HandleOidc(ctx context.Context, operation string, req api.Oid
 	return context.WithValue(ctx, UserContextKey, user), nil
 }
 
-func (n *noAuth) HandleOidc(ctx context.Context, operation string, req api.Oidc) (context.Context, error) {
+func (n *noAuth) HandleOidc(
+	ctx context.Context,
+	operation string,
+	req api.Oidc,
+) (context.Context, error) {
 	log.Println("⚠️ No-Auth Mode: Skipping authentication.")
 	return context.WithValue(ctx, UserContextKey, "anonymous"), nil
 }

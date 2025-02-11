@@ -22,10 +22,20 @@ func TestApplyQuotas_Success(t *testing.T) {
 	mockService.On("ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default).
 		Return(interfaces.QuotaCreated, nil)
 
-	err := usecase.applyQuotas(context.Background(), userNamespace, domain.OnboardingRequest{UserName: testUserName})
+	err := usecase.applyQuotas(
+		context.Background(),
+		userNamespace,
+		domain.OnboardingRequest{UserName: testUserName},
+	)
 
 	assert.NoError(t, err)
-	mockService.AssertCalled(t, "ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default)
+	mockService.AssertCalled(
+		t,
+		"ApplyResourceQuotas",
+		mock.Anything,
+		userNamespace,
+		&quotas.Default,
+	)
 }
 
 func TestApplyQuotas_AlreadyUpToDate(t *testing.T) {
@@ -39,10 +49,20 @@ func TestApplyQuotas_AlreadyUpToDate(t *testing.T) {
 	mockService.On("ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default).
 		Return(interfaces.QuotaUnchanged, nil)
 
-	err := usecase.applyQuotas(context.Background(), userNamespace, domain.OnboardingRequest{UserName: testUserName})
+	err := usecase.applyQuotas(
+		context.Background(),
+		userNamespace,
+		domain.OnboardingRequest{UserName: testUserName},
+	)
 
 	assert.NoError(t, err)
-	mockService.AssertCalled(t, "ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default)
+	mockService.AssertCalled(
+		t,
+		"ApplyResourceQuotas",
+		mock.Anything,
+		userNamespace,
+		&quotas.Default,
+	)
 }
 
 func TestApplyQuotas_QuotasDisabled(t *testing.T) {
@@ -50,7 +70,11 @@ func TestApplyQuotas_QuotasDisabled(t *testing.T) {
 	quotas := domain.Quotas{Enabled: false}
 	usecase := setupPrivateUsecase(mockService, quotas)
 
-	err := usecase.applyQuotas(context.Background(), userNamespace, domain.OnboardingRequest{UserName: testUserName})
+	err := usecase.applyQuotas(
+		context.Background(),
+		userNamespace,
+		domain.OnboardingRequest{UserName: testUserName},
+	)
 
 	assert.NoError(t, err)
 	mockService.AssertNotCalled(t, "ApplyResourceQuotas")
@@ -66,10 +90,20 @@ func TestApplyQuotas_Failure(t *testing.T) {
 
 	mockService.On("ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default).
 		Return(interfaces.QuotaError, errors.New("failed to apply quotas"))
-	err := usecase.applyQuotas(context.Background(), userNamespace, domain.OnboardingRequest{UserName: testUserName})
+	err := usecase.applyQuotas(
+		context.Background(),
+		userNamespace,
+		domain.OnboardingRequest{UserName: testUserName},
+	)
 
 	assert.Error(t, err)
-	mockService.AssertCalled(t, "ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default)
+	mockService.AssertCalled(
+		t,
+		"ApplyResourceQuotas",
+		mock.Anything,
+		userNamespace,
+		&quotas.Default,
+	)
 }
 
 func TestGetQuota_GroupQuota(t *testing.T) {

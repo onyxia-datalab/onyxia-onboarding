@@ -14,7 +14,11 @@ type onboardingUsecase struct {
 	quotas               domain.Quotas
 }
 
-func NewOnboardingUsecase(namespaceService interfaces.NamespaceService, namespacePrefix, groupNamespacePrefix string, quotas domain.Quotas) *onboardingUsecase {
+func NewOnboardingUsecase(
+	namespaceService interfaces.NamespaceService,
+	namespacePrefix, groupNamespacePrefix string,
+	quotas domain.Quotas,
+) *onboardingUsecase {
 	return &onboardingUsecase{
 		namespaceService:     namespaceService,
 		namespacePrefix:      namespacePrefix,

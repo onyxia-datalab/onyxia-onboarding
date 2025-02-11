@@ -25,5 +25,9 @@ const (
 
 type NamespaceService interface {
 	CreateNamespace(ctx context.Context, name string) (NamespaceCreationResult, error)
-	ApplyResourceQuotas(ctx context.Context, namespace string, quota *domain.Quota) (QuotaApplicationResult, error)
+	ApplyResourceQuotas(
+		ctx context.Context,
+		namespace string,
+		quota *domain.Quota,
+	) (QuotaApplicationResult, error)
 }
