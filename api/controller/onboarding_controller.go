@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
@@ -27,20 +27,22 @@ func (c *OnboardingController) Onboard(
 	ctx context.Context,
 	req *api.OnboardingRequest,
 ) (api.OnboardRes, error) {
-	log.Printf("🟢 Received Onboarding Request")
+	slog.Info("🟢 Received Onboarding Request")
 
 	userName, err := c.getUser(ctx)
 	if err != nil {
-		log.Printf("❌ Failed to retrieve user from context: %v", err)
+		slog.Error("❌ Failed to retrieve user from context",
+			slog.Any("error", err),
+		)
 		return &api.OnboardForbidden{}, err
 	}
-	log.Printf("🔵 User identified: %s", userName)
+	slog.Info("🔵 User identified", slog.String("user", userName))
 
 	// Extract optional value from OptString
 	var groupPtr *string
 	if req.Group.Set { // Check if value is set
 		groupPtr = &req.Group.Value
-		log.Printf("📌 Group provided: %s", req.Group.Value)
+		slog.Info("📌 Group provided", slog.String("group", req.Group.Value))
 	}
 
 	err = c.OnboardingUsecase.Onboard(
@@ -49,15 +51,17 @@ func (c *OnboardingController) Onboard(
 	)
 
 	if err != nil {
-		log.Printf(
-			"❌ Onboarding failed | User: %s | Group: %v | Error: %v",
-			userName,
-			groupPtr,
-			err,
+		slog.Error("❌ Onboarding failed",
+			slog.String("user", userName),
+			slog.Any("group", groupPtr),
+			slog.Any("error", err),
 		)
 		return &api.OnboardForbidden{}, err
 	}
 
-	log.Printf("✅ Onboarding successful | User: %s | Group: %v", userName, groupPtr)
+	slog.Info("✅ Onboarding successful",
+		slog.String("user", userName),
+		slog.Any("group", groupPtr),
+	)
 	return &api.OnboardOK{}, nil
 }

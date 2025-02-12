@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
@@ -21,7 +21,7 @@ type TokenVerifier interface {
 
 type oidcAuth struct {
 	UsernameClaim string
-	Verifier      TokenVerifier // ✅ Uses an interface now!
+	Verifier      TokenVerifier
 }
 
 type noAuth struct{}
@@ -40,12 +40,16 @@ func OidcMiddleware(
 ) (api.SecurityHandler, error) {
 
 	if authenticationMode == "none" {
-		log.Println("🚀 Running in No-Auth Mode")
+		slog.Info("🚀 Running in No-Auth Mode")
 		return &noAuth{}, nil
 	}
 
 	oidcProvider, err := oidc.NewProvider(ctx, issuerUri)
 	if err != nil {
+		slog.Error("❌ Failed to initialize OIDC provider",
+			slog.String("issuer", issuerUri),
+			slog.Any("error", err),
+		)
 		return nil, err
 	}
 
@@ -56,6 +60,11 @@ func OidcMiddleware(
 		SkipClientIDCheck:          false,
 		InsecureSkipSignatureCheck: false,
 	})
+
+	slog.Info("🔑 OIDC Middleware Initialized",
+		slog.String("issuer", issuerUri),
+		slog.String("client_id", clientId),
+	)
 
 	return &oidcAuth{
 		UsernameClaim: usernameClaim,
@@ -68,27 +77,45 @@ func (a *oidcAuth) HandleOidc(
 	operation string,
 	req api.Oidc,
 ) (context.Context, error) {
+	slog.Info("🔵 Verifying OIDC Token", slog.String("operation", operation))
+
 	token, err := a.Verifier.Verify(ctx, req.Token)
 	if err != nil {
+		slog.Error("❌ OIDC Token Verification Failed",
+			slog.String("operation", operation),
+			slog.Any("error", err),
+		)
 		return ctx, err
 	}
 
 	var claims map[string]any
 	if err := token.Claims(&claims); err != nil {
+		slog.Error("❌ Failed to extract claims from token", slog.Any("error", err))
 		return ctx, err
 	}
 
 	user, ok := claims[a.UsernameClaim]
 	if !ok {
+		slog.Error("❌ Missing required claim",
+			slog.String("claim", a.UsernameClaim),
+		)
 		return ctx, fmt.Errorf("missing %q claim", a.UsernameClaim)
 	}
 
-	user, ok = user.(string)
+	userStr, ok := user.(string)
 	if !ok {
+		slog.Error("❌ Unexpected claim format",
+			slog.String("claim", a.UsernameClaim),
+		)
 		return ctx, fmt.Errorf("unknown format for claim %q", a.UsernameClaim)
 	}
 
-	return context.WithValue(ctx, UserContextKey, user), nil
+	slog.Info("✅ OIDC Authentication Successful",
+		slog.String("user", userStr),
+		slog.String("operation", operation),
+	)
+
+	return context.WithValue(ctx, UserContextKey, userStr), nil
 }
 
 func (n *noAuth) HandleOidc(
@@ -96,6 +123,6 @@ func (n *noAuth) HandleOidc(
 	operation string,
 	req api.Oidc,
 ) (context.Context, error) {
-	log.Println("⚠️ No-Auth Mode: Skipping authentication.")
+	slog.Warn("⚠️ No-Auth Mode: Skipping authentication.", slog.String("operation", operation))
 	return context.WithValue(ctx, UserContextKey, "anonymous"), nil
 }

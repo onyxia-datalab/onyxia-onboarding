@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/spf13/viper"
 )
@@ -76,16 +76,22 @@ func NewEnv() *Env {
 	viper.AddConfigPath(".")    // Look in the current directory
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Println("⚠️ No env.yaml file found, relying on system environment variables")
+		slog.Warn(
+			"No env.yaml file found, relying on system environment variables",
+			slog.Any("error", err),
+		)
 	} else {
-		log.Println("✅ Successfully loaded env.yaml")
+		slog.Info("Successfully loaded env.yaml")
 	}
 
 	viper.AutomaticEnv()
 
 	// Map the environment variables to the Env struct
 	if err := viper.Unmarshal(&env); err != nil {
-		panic(err)
+		if err := viper.Unmarshal(&env); err != nil {
+			slog.Error("Failed to parse environment configuration", slog.Any("error", err))
+			panic(err)
+		}
 	}
 
 	return &env

@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
 	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
@@ -15,9 +15,8 @@ func (s *onboardingUsecase) applyQuotas(
 	req domain.OnboardingRequest,
 ) error {
 	if !s.quotas.Enabled {
-		log.Printf(
-			"⚠️ Quotas are disabled, skipping quota application for namespace: %s",
-			namespace,
+		slog.Warn("⚠️ Quotas are disabled, skipping quota application",
+			slog.String("namespace", namespace),
 		)
 		return nil
 	}
@@ -25,24 +24,38 @@ func (s *onboardingUsecase) applyQuotas(
 	quotaToApply := s.getQuota(req, namespace)
 
 	if quotaToApply == nil {
-		log.Printf("⚠️ No applicable quota found for namespace: %s", namespace)
+		slog.Warn("⚠️ No applicable quota found",
+			slog.String("namespace", namespace),
+		)
 		return nil
 	}
 
 	result, err := s.namespaceService.ApplyResourceQuotas(ctx, namespace, quotaToApply)
 	if err != nil {
+		slog.Error("❌ Failed to apply quotas",
+			slog.String("namespace", namespace),
+			slog.Any("error", err),
+		)
 		return fmt.Errorf("failed to apply quotas to namespace (%s): %w", namespace, err)
 	}
 
 	switch result {
 	case interfaces.QuotaCreated:
-		log.Printf("✅ Created new resource quota for namespace: %s", namespace)
+		slog.Info("✅ Created new resource quota",
+			slog.String("namespace", namespace),
+		)
 	case interfaces.QuotaUpdated:
-		log.Printf("✅ Updated resource quota for namespace: %s", namespace)
+		slog.Info("✅ Updated resource quota",
+			slog.String("namespace", namespace),
+		)
 	case interfaces.QuotaUnchanged:
-		log.Printf("⚠️ Resource quota is already up-to-date for namespace: %s", namespace)
+		slog.Warn("⚠️ Resource quota is already up-to-date",
+			slog.String("namespace", namespace),
+		)
 	case interfaces.QuotaIgnored:
-		log.Printf("⚠️ Quota ignored due to annotation in namespace: %s", namespace)
+		slog.Warn("⚠️ Quota ignored due to annotation",
+			slog.String("namespace", namespace),
+		)
 	}
 
 	return nil
@@ -51,13 +64,19 @@ func (s *onboardingUsecase) applyQuotas(
 func (s *onboardingUsecase) getQuota(req domain.OnboardingRequest, namespace string) *domain.Quota {
 	switch {
 	case req.Group != nil && s.quotas.GroupEnabled:
-		log.Printf("🔹 Applying group quota for namespace: %s", namespace)
+		slog.Info("🔹 Applying group quota",
+			slog.String("namespace", namespace),
+		)
 		return &s.quotas.Group
 	case s.quotas.UserEnabled:
-		log.Printf("🔹 Applying user quota for namespace: %s", namespace)
+		slog.Info("🔹 Applying user quota",
+			slog.String("namespace", namespace),
+		)
 		return &s.quotas.User
 	default:
-		log.Printf("🔹 Applying default quota for namespace: %s", namespace)
+		slog.Info("🔹 Applying default quota",
+			slog.String("namespace", namespace),
+		)
 		return &s.quotas.Default
 	}
 }
