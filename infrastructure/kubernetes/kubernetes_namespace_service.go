@@ -56,7 +56,11 @@ func (s *KubernetesNamespaceService) ApplyResourceQuotas(
 ) (interfaces.QuotaApplicationResult, error) {
 	quotasClient := s.clientset.CoreV1().ResourceQuotas(namespace)
 
-	hardLimits := convertQuotaToResourceMap(*quota)
+	hardLimits, err := convertQuotaToResourceMap(*quota)
+
+	if err != nil {
+		return "", fmt.Errorf("error converting quota to ResourceQuota: %w", err)
+	}
 
 	// ✅ If no valid quotas exist, return early
 	if len(hardLimits) == 0 {
@@ -131,7 +135,7 @@ func quotasAreDifferent(existing, newQuota *v1.ResourceQuota) bool {
 	return false
 }
 
-func convertQuotaToResourceMap(quota domain.Quota) map[v1.ResourceName]resource.Quantity {
+func convertQuotaToResourceMap(quota domain.Quota) (map[v1.ResourceName]resource.Quantity, error) {
 	quotaEntries := map[v1.ResourceName]string{
 		v1.ResourceRequestsMemory:                  quota.MemoryRequest,
 		v1.ResourceRequestsCPU:                     quota.CPURequest,
@@ -149,9 +153,13 @@ func convertQuotaToResourceMap(quota domain.Quota) map[v1.ResourceName]resource.
 	hardLimits := make(map[v1.ResourceName]resource.Quantity, len(quotaEntries))
 	for key, value := range quotaEntries {
 		if value != "" {
-			hardLimits[key] = resource.MustParse(value)
+			quantity, err := resource.ParseQuantity(value)
+			if err != nil {
+				return nil, err
+			}
+			hardLimits[key] = quantity
 		}
 	}
 
-	return hardLimits
+	return hardLimits, nil
 }
