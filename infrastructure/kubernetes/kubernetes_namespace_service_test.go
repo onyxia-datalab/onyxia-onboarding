@@ -58,7 +58,11 @@ func TestCreateNamespace_Failure(t *testing.T) {
 	result, err := service.CreateNamespace(context.Background(), "error-namespace")
 
 	assert.Error(t, err)
-	assert.Equal(t, interfaces.NamespaceError, result) // ✅ Ensure correct error type is returned
+	assert.Equal(
+		t,
+		interfaces.NamespaceCreationResult(""),
+		result,
+	) // ✅ Ensure correct error type is returned
 	assert.Contains(t, err.Error(), "simulated API failure")
 }
 
@@ -71,17 +75,17 @@ func TestApplyResourceQuotas_Success(t *testing.T) {
 
 	quota := &domain.Quota{MemoryRequest: "10Gi", CPURequest: "10"}
 
-	result, err := service.ApplyResourceQuotas(context.TODO(), "test-namespace", quota)
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
 
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.QuotaCreated, result) // ✅ Ensure quota was created
 
 	createdQuota, err := clientset.CoreV1().
 		ResourceQuotas("test-namespace").
-		Get(context.Background(), quotaName, metav1.GetOptions{})
+		Get(context.Background(), QuotaName, metav1.GetOptions{})
 	assert.NoError(t, err)
-	assert.Equal(t, quotaName, createdQuota.Name)
-	assert.Equal(t, "onyxia", createdQuota.Labels["createdby"])
+	assert.Equal(t, QuotaName, createdQuota.Name)
+	assert.Equal(t, "onyxia", createdQuota.Labels["created-by"])
 
 	memoryQuantity, exists := createdQuota.Spec.Hard[v1.ResourceRequestsMemory]
 	assert.True(t, exists)
@@ -91,7 +95,7 @@ func TestApplyResourceQuotas_Success(t *testing.T) {
 // ✅ Test: Update Existing Quota (Different Values)
 func TestApplyResourceQuotas_UpdateExistingQuota(t *testing.T) {
 	clientset := fake.NewSimpleClientset(&v1.ResourceQuota{
-		ObjectMeta: metav1.ObjectMeta{Name: quotaName, Namespace: "test-namespace"},
+		ObjectMeta: metav1.ObjectMeta{Name: QuotaName, Namespace: "test-namespace"},
 		Spec: v1.ResourceQuotaSpec{
 			Hard: map[v1.ResourceName]resource.Quantity{
 				v1.ResourceRequestsMemory: resource.MustParse("8Gi"),
@@ -109,7 +113,7 @@ func TestApplyResourceQuotas_UpdateExistingQuota(t *testing.T) {
 
 	updatedQuota, err := clientset.CoreV1().
 		ResourceQuotas("test-namespace").
-		Get(context.Background(), quotaName, metav1.GetOptions{})
+		Get(context.Background(), QuotaName, metav1.GetOptions{})
 	assert.NoError(t, err)
 
 	memoryQuantity, exists := updatedQuota.Spec.Hard[v1.ResourceRequestsMemory]
@@ -120,7 +124,7 @@ func TestApplyResourceQuotas_UpdateExistingQuota(t *testing.T) {
 // ✅ Test: Quota Already Up-to-Date
 func TestApplyResourceQuotas_NoUpdateNeeded(t *testing.T) {
 	clientset := fake.NewSimpleClientset(&v1.ResourceQuota{
-		ObjectMeta: metav1.ObjectMeta{Name: quotaName, Namespace: "test-namespace"},
+		ObjectMeta: metav1.ObjectMeta{Name: QuotaName, Namespace: "test-namespace"},
 		Spec: v1.ResourceQuotaSpec{
 			Hard: map[v1.ResourceName]resource.Quantity{
 				v1.ResourceRequestsMemory: resource.MustParse("10Gi"),
@@ -153,7 +157,11 @@ func TestApplyResourceQuotas_Failure(t *testing.T) {
 	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
 
 	assert.Error(t, err)
-	assert.Equal(t, interfaces.QuotaError, result) // ✅ Ensure correct error type is returned
+	assert.Equal(
+		t,
+		interfaces.QuotaApplicationResult(""),
+		result,
+	) // ✅ Ensure correct error type is returned
 	assert.Contains(t, err.Error(), "failed to create resource quota")
 }
 
@@ -161,10 +169,10 @@ func TestApplyResourceQuotas_Failure(t *testing.T) {
 func TestApplyResourceQuotas_IgnoredQuota(t *testing.T) {
 	clientset := fake.NewSimpleClientset(&v1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      quotaName,
+			Name:      QuotaName,
 			Namespace: "test-namespace",
 			Annotations: map[string]string{
-				"onyxia_ignore": "true",
+				IgnoreQuotaAnnotation: "true",
 			},
 		},
 	})

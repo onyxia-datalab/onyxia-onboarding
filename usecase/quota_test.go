@@ -89,7 +89,7 @@ func TestApplyQuotas_Failure(t *testing.T) {
 	usecase := setupPrivateUsecase(mockService, quotas)
 
 	mockService.On("ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default).
-		Return(interfaces.QuotaError, errors.New("failed to apply quotas"))
+		Return(interfaces.QuotaApplicationResult(""), errors.New("failed to apply quotas"))
 	err := usecase.applyQuotas(
 		context.Background(),
 		userNamespace,

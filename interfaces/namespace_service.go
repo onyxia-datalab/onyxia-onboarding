@@ -12,7 +12,6 @@ type QuotaApplicationResult string
 const (
 	NamespaceCreated       NamespaceCreationResult = "created"
 	NamespaceAlreadyExists NamespaceCreationResult = "already_exists"
-	NamespaceError         NamespaceCreationResult = "error"
 )
 
 const (
@@ -20,7 +19,6 @@ const (
 	QuotaUpdated   QuotaApplicationResult = "updated"
 	QuotaUnchanged QuotaApplicationResult = "unchanged"
 	QuotaIgnored   QuotaApplicationResult = "ignored"
-	QuotaError     QuotaApplicationResult = "error"
 )
 
 type NamespaceService interface {

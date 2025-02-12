@@ -42,7 +42,7 @@ func TestCreateNamespace_Failure(t *testing.T) {
 	usecase := setupPrivateUsecase(mockService, domain.Quotas{})
 
 	mockService.On("CreateNamespace", mock.Anything, userNamespace).
-		Return(interfaces.NamespaceError, errors.New("failed to create namespace"))
+		Return(interfaces.NamespaceCreationResult(""), errors.New("failed to create namespace"))
 	err := usecase.createNamespace(context.Background(), userNamespace)
 
 	assert.Error(t, err)

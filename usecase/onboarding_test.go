@@ -61,7 +61,7 @@ func Test_Onboard_CreateNamespaceFails(t *testing.T) {
 
 	expectedError := errors.New("namespace creation failed")
 	mockService.On("CreateNamespace", mock.Anything, groupNamespace).
-		Return(interfaces.NamespaceError, expectedError)
+		Return(interfaces.NamespaceCreationResult(""), expectedError)
 
 	groupName := testGroupName
 	req := domain.OnboardingRequest{Group: &groupName, UserName: testUserName}
@@ -83,7 +83,7 @@ func Test_Onboard_ApplyResourceQuotasFails(t *testing.T) {
 		Return(interfaces.NamespaceCreated, nil)
 
 	mockService.On("ApplyResourceQuotas", mock.Anything, defaultNamespace, &quotas.Default).
-		Return(interfaces.QuotaError, errors.New("failed to apply quota")) // ✅ Return error
+		Return(interfaces.QuotaApplicationResult(""), errors.New("failed to apply quota"))
 
 	req := domain.OnboardingRequest{Group: nil, UserName: testUserName}
 	err := usecase.Onboard(context.Background(), req)
