@@ -7,16 +7,13 @@ import (
 )
 
 type OIDC struct {
-	IssuerURI        string `mapstructure:"issuerURI"        json:"issuerURI"`
-	SkipTLSVerify    bool   `mapstructure:"skipTLSVerify"    json:"skipTLSVerify"`
-	JWKURI           string `mapstructure:"jwkURI"           json:"jwkURI"`
-	PublicKey        string `mapstructure:"publicKey"        json:"publicKey"`
-	ClientID         string `mapstructure:"clientID"         json:"clientID"`
-	Audience         string `mapstructure:"audience"         json:"audience"`
-	UsernameClaim    string `mapstructure:"usernameClaim"    json:"usernameClaim"`
-	GroupsClaim      string `mapstructure:"groupsClaim"      json:"groupsClaim"`
-	RolesClaim       string `mapstructure:"rolesClaim"       json:"rolesClaim"`
-	ExtraQueryParams string `mapstructure:"extraQueryParams" json:"extraQueryParams"`
+	IssuerURI     string `mapstructure:"issuerURI"     json:"issuerURI"`
+	SkipTLSVerify bool   `mapstructure:"skipTLSVerify" json:"skipTLSVerify"`
+	ClientID      string `mapstructure:"clientID"      json:"clientID"`
+	Audience      string `mapstructure:"audience"      json:"audience"`
+	UsernameClaim string `mapstructure:"usernameClaim" json:"usernameClaim"`
+	GroupsClaim   string `mapstructure:"groupsClaim"   json:"groupsClaim"`
+	RolesClaim    string `mapstructure:"rolesClaim"    json:"rolesClaim"`
 }
 
 type Security struct {

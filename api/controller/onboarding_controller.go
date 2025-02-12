@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
@@ -10,12 +11,12 @@ import (
 
 type OnboardingController struct {
 	OnboardingUsecase domain.OnboardingUsecase
-	getUser           func(ctx context.Context) (string, error)
+	getUser           func(ctx context.Context) (string, bool)
 }
 
 func NewOnboardingController(
 	onboardingUsecase domain.OnboardingUsecase,
-	getUser func(ctx context.Context) (string, error),
+	getUser func(ctx context.Context) (string, bool),
 ) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: onboardingUsecase,
@@ -29,13 +30,13 @@ func (c *OnboardingController) Onboard(
 ) (api.OnboardRes, error) {
 	slog.Info("🟢 Received Onboarding Request")
 
-	userName, err := c.getUser(ctx)
-	if err != nil {
-		slog.Error("❌ Failed to retrieve user from context",
-			slog.Any("error", err),
-		)
+	userName, ok := c.getUser(ctx)
+	if !ok {
+		err := fmt.Errorf("user not found in context")
+		slog.Error("❌ Failed to retrieve user from context", slog.Any("error", err))
 		return &api.OnboardForbidden{}, err
 	}
+
 	slog.Info("🔵 User identified", slog.String("user", userName))
 
 	// Extract optional value from OptString
@@ -45,7 +46,7 @@ func (c *OnboardingController) Onboard(
 		slog.Info("📌 Group provided", slog.String("group", req.Group.Value))
 	}
 
-	err = c.OnboardingUsecase.Onboard(
+	err := c.OnboardingUsecase.Onboard(
 		ctx,
 		domain.OnboardingRequest{Group: groupPtr, UserName: userName},
 	)

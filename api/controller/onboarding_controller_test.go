@@ -22,17 +22,17 @@ func (m *MockOnboardingUsecase) Onboard(ctx context.Context, req domain.Onboardi
 	return args.Error(0)
 }
 
-func fakeGetUser(ctx context.Context) (string, error) {
-	return "test-user", nil
+func fakeGetUser(ctx context.Context) (string, bool) {
+	return "test-user", true
 }
 
-func fakeGetUserFail(ctx context.Context) (string, error) {
-	return "", errors.New("user retrieval failed")
+func fakeGetUserFail(ctx context.Context) (string, bool) {
+	return "", false
 }
 
 func setupController(
 	mockUsecase *MockOnboardingUsecase,
-	getUser func(ctx context.Context) (string, error),
+	getUser func(ctx context.Context) (string, bool),
 ) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: mockUsecase,

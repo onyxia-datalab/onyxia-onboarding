@@ -17,7 +17,7 @@ func SetupOnboardingRoutes(
 	app *bootstrap.Application,
 	router chi.Router,
 	auth api.SecurityHandler,
-	getUser func(ctx context.Context) (string, error),
+	getUser func(ctx context.Context) (string, bool),
 ) {
 
 	namespaceCreator := kubernetes.NewKubernetesNamespaceService(app.K8sClient.Clientset)
