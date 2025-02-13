@@ -199,17 +199,11 @@ func (a *oidcAuth) extractStringArray(claims map[string]any, claimName string) [
 		return nil
 	}
 
-	rawArray, ok := value.([]interface{})
+	result, ok := value.([]string)
 	if !ok {
 		return nil
 	}
 
-	var result []string
-	for _, entry := range rawArray {
-		if str, ok := entry.(string); ok {
-			result = append(result, str)
-		}
-	}
 	return result
 }
 
