@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"log/slog"
-
 	"github.com/spf13/viper"
 )
 
@@ -68,17 +67,18 @@ type Env struct {
 func NewEnv() *Env {
 	env := Env{}
 
-	viper.SetConfigName("env")  // Name of the file (without extension)
+	// Define the list of config files in priority order (low -> high priority)
+	configFiles := []string{"env.default", "env"}
 	viper.SetConfigType("yaml") // File type
-	viper.AddConfigPath(".")    // Look in the current directory
 
-	if err := viper.ReadInConfig(); err != nil {
-		slog.Warn(
-			"No env.yaml file found, relying on system environment variables",
-			slog.Any("error", err),
-		)
-	} else {
-		slog.Info("Successfully loaded env.yaml")
+	for _, file := range configFiles {
+		viper.SetConfigName(file) // Name without extension
+		viper.AddConfigPath(".")  // Look in the current directory
+
+		// Merge the configurations instead of replacing
+		if err := viper.MergeInConfig(); err == nil {
+			slog.Info("Loaded config file", slog.String("file", file))
+		}
 	}
 
 	viper.AutomaticEnv()
