@@ -1,9 +1,9 @@
-package bootstrap
+package kubernetes
 
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -24,7 +24,7 @@ func NewKubernetesClient() *KubernetesClient {
 
 	config, err = rest.InClusterConfig()
 	if err != nil {
-		log.Println("⚠️  Not running in a Kubernetes cluster, trying local kubeconfig...")
+		slog.Warn("⚠️  Not running in a Kubernetes cluster, trying local kubeconfig...")
 
 		kubeconfig := os.Getenv("KUBECONFIG")
 		if kubeconfig == "" {
@@ -33,18 +33,21 @@ func NewKubernetesClient() *KubernetesClient {
 
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
-			log.Fatalf("❌ Failed to load kubeconfig: %v", err)
+			slog.Error("❌ Failed to load kubeconfig", slog.Any("error", err))
+			panic(err) // Still exit on failure
 		}
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("❌ Failed to create Kubernetes client: %v", err)
+		slog.Error("❌ Failed to create Kubernetes client", slog.Any("error", err))
+		panic(err) // Still exit on failure
 	}
 
 	err = checkConnectivity(clientset)
 	if err != nil {
-		log.Fatalf("❌ Failed to connect to the APIServer : %v", err)
+		slog.Error("❌ Failed to connect to the APIServer", slog.Any("error", err))
+		panic(err) // Still exit on failure
 	}
 
 	return &KubernetesClient{Clientset: clientset}
@@ -56,9 +59,11 @@ func checkConnectivity(clientSet *kubernetes.Clientset) error {
 
 	version, err := clientSet.Discovery().ServerVersion()
 	if err != nil {
-		return fmt.Errorf("❌ Kubernetes API unreachable: %v", err)
+		return fmt.Errorf("❌ Kubernetes API unreachable: %w", err)
 	}
 
-	log.Printf("✅ Kubernetes API is reachable! Server version: %s", version.GitVersion)
+	slog.Info("✅ Kubernetes API is reachable!",
+		slog.String("server_version", version.GitVersion),
+	)
 	return nil
 }

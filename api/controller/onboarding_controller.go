@@ -2,48 +2,67 @@ package controller
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"log/slog"
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 )
 
 type OnboardingController struct {
 	OnboardingUsecase domain.OnboardingUsecase
-	getUser           func(ctx context.Context) (string, error)
+	UserContextReader usercontext.UserContextReader
 }
 
-func NewOnboardingController(onboardingUsecase domain.OnboardingUsecase, getUser func(ctx context.Context) (string, error)) *OnboardingController {
+func NewOnboardingController(
+	onboardingUsecase domain.OnboardingUsecase,
+	userContextReader usercontext.UserContextReader,
+) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: onboardingUsecase,
-		getUser:           getUser,
+		UserContextReader: userContextReader,
 	}
 }
 
-func (c *OnboardingController) Onboard(ctx context.Context, req *api.OnboardingRequest) (api.OnboardRes, error) {
-	log.Printf("🟢 Received Onboarding Request")
+func (c *OnboardingController) Onboard(
+	ctx context.Context,
+	req *api.OnboardingRequest,
+) (api.OnboardRes, error) {
+	slog.Info("🟢 Received Onboarding Request")
 
-	userName, err := c.getUser(ctx)
-	if err != nil {
-		log.Printf("❌ Failed to retrieve user from context: %v", err)
+	userName, ok := c.UserContextReader.GetUser(ctx)
+	if !ok {
+		err := fmt.Errorf("user not found in context")
+		slog.Error("❌ Failed to retrieve user from context", slog.Any("error", err))
 		return &api.OnboardForbidden{}, err
 	}
-	log.Printf("🔵 User identified: %s", userName)
+
+	slog.Info("🔵 User identified", slog.String("user", userName))
 
 	// Extract optional value from OptString
 	var groupPtr *string
 	if req.Group.Set { // Check if value is set
 		groupPtr = &req.Group.Value
-		log.Printf("📌 Group provided: %s", req.Group.Value)
+		slog.Info("📌 Group provided", slog.String("group", req.Group.Value))
 	}
 
-	err = c.OnboardingUsecase.Onboard(ctx, domain.OnboardingRequest{Group: groupPtr, UserName: userName})
-
+	err := c.OnboardingUsecase.Onboard(
+		ctx,
+		domain.OnboardingRequest{Group: groupPtr, UserName: userName},
+	)
 	if err != nil {
-		log.Printf("❌ Onboarding failed | User: %s | Group: %v | Error: %v", userName, groupPtr, err)
+		slog.Error("❌ Onboarding failed",
+			slog.String("user", userName),
+			slog.Any("group", groupPtr),
+			slog.Any("error", err),
+		)
 		return &api.OnboardForbidden{}, err
 	}
 
-	log.Printf("✅ Onboarding successful | User: %s | Group: %v", userName, groupPtr)
+	slog.Info("✅ Onboarding successful",
+		slog.String("user", userName),
+		slog.Any("group", groupPtr),
+	)
 	return &api.OnboardOK{}, nil
 }

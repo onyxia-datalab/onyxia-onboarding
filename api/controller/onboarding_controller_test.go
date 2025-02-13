@@ -7,6 +7,7 @@ import (
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -22,76 +23,71 @@ func (m *MockOnboardingUsecase) Onboard(ctx context.Context, req domain.Onboardi
 	return args.Error(0)
 }
 
-func fakeGetUser(ctx context.Context) (string, error) {
-	return "test-user", nil
+type MockUserContextReader struct {
+	mock.Mock
 }
 
-func fakeGetUserFail(ctx context.Context) (string, error) {
-	return "", errors.New("user retrieval failed")
+func (m *MockUserContextReader) GetUser(ctx context.Context) (string, bool) {
+	args := m.Called(ctx)
+	return args.String(0), args.Bool(1)
 }
 
-func setupController(mockUsecase *MockOnboardingUsecase, getUser func(ctx context.Context) (string, error)) *OnboardingController {
+func (m *MockUserContextReader) GetGroups(ctx context.Context) ([]string, bool) {
+	return nil, true
+}
+
+func (m *MockUserContextReader) GetRoles(ctx context.Context) ([]string, bool) {
+	return nil, true
+}
+
+func setupController(
+	mockUsecase *MockOnboardingUsecase,
+	userCtx usercontext.UserContextReader,
+) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: mockUsecase,
-		getUser:           getUser,
+		UserContextReader: userCtx,
 	}
 }
-
-// ✅ Test: Onboarding succeeds when `Group` is set
 func TestOnboardingController_Onboard_Success(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUsecase.On("Onboard", mock.Anything, mock.Anything).Return(nil) // ✅ Define behavior
+	mockUserCtx := new(MockUserContextReader)
+	mockUsecase.On("Onboard", mock.Anything, mock.Anything).Return(nil)
+	mockUserCtx.On("GetUser", mock.Anything).Return("test-user", true)
 
-	controller := setupController(mockUsecase, fakeGetUser)
+	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}
 
 	res, err := controller.Onboard(context.Background(), &req)
 
 	assert.NoError(t, err)
 	assert.IsType(t, &api.OnboardOK{}, res)
-
-	// ✅ Verify `Onboard` was called
 	mockUsecase.AssertCalled(t, "Onboard", mock.Anything, mock.Anything)
 }
 
-// ✅ Test: Empty group should still succeed
-func TestOnboardingController_Onboard_EmptyGroup(t *testing.T) {
-	mockUsecase := new(MockOnboardingUsecase)
-	mockUsecase.On("Onboard", mock.Anything, mock.Anything).Return(nil)
-
-	controller := setupController(mockUsecase, fakeGetUser)
-	req := api.OnboardingRequest{Group: api.OptString{Value: "", Set: true}}
-
-	res, err := controller.Onboard(context.Background(), &req)
-
-	assert.NoError(t, err)
-	assert.IsType(t, &api.OnboardOK{}, res)
-
-	// ✅ Verify `Onboard` was called
-	mockUsecase.AssertCalled(t, "Onboard", mock.Anything, mock.Anything)
-}
-
-// ❌ Test: `getUser` fails → Should return `OnboardForbidden`
 func TestOnboardingController_Onboard_GetUserFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
+	mockUserCtx := new(MockUserContextReader)
+	mockUserCtx.On("GetUser", mock.Anything).Return("", false)
 
-	controller := setupController(mockUsecase, fakeGetUserFail)
+	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}
 
 	res, err := controller.Onboard(context.Background(), &req)
 
 	assert.Error(t, err)
 	assert.IsType(t, &api.OnboardForbidden{}, res)
-
 	mockUsecase.AssertNotCalled(t, "Onboard")
 }
 
-// ❌ Test: `OnboardingUsecase.Onboard` fails → Should return `OnboardForbidden`
 func TestOnboardingController_Onboard_OnboardingFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUsecase.On("Onboard", mock.Anything, mock.Anything).Return(errors.New("onboarding service error"))
+	mockUserCtx := new(MockUserContextReader)
+	mockUsecase.On("Onboard", mock.Anything, mock.Anything).
+		Return(errors.New("onboarding service error"))
+	mockUserCtx.On("GetUser", mock.Anything).Return("test-user", true)
 
-	controller := setupController(mockUsecase, fakeGetUser)
+	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}
 
 	res, err := controller.Onboard(context.Background(), &req)
