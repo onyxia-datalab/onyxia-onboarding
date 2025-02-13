@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
@@ -11,15 +11,22 @@ func (s *onboardingUsecase) createNamespace(ctx context.Context, namespace strin
 	result, err := s.namespaceService.CreateNamespace(ctx, namespace)
 
 	if err != nil {
-		log.Printf("❌ Failed to create namespace (%s): %v", namespace, err)
+		slog.Error("❌ Failed to create namespace",
+			slog.String("namespace", namespace),
+			slog.Any("error", err),
+		)
 		return err
 	}
 
 	switch result {
 	case interfaces.NamespaceCreated:
-		log.Printf("✅ Successfully created namespace: %s", namespace)
+		slog.Info("✅ Successfully created namespace",
+			slog.String("namespace", namespace),
+		)
 	case interfaces.NamespaceAlreadyExists:
-		log.Printf("⚠️ Namespace already exists: %s", namespace)
+		slog.Warn("⚠️ Namespace already exists",
+			slog.String("namespace", namespace),
+		)
 	}
 
 	return nil

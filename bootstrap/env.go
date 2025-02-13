@@ -1,22 +1,19 @@
 package bootstrap
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/spf13/viper"
 )
 
 type OIDC struct {
-	IssuerURI        string `mapstructure:"issuerURI"        json:"issuerURI"`
-	SkipTLSVerify    bool   `mapstructure:"skipTLSVerify"    json:"skipTLSVerify"`
-	JWKURI           string `mapstructure:"jwkURI"           json:"jwkURI"`
-	PublicKey        string `mapstructure:"publicKey"        json:"publicKey"`
-	ClientID         string `mapstructure:"clientID"         json:"clientID"`
-	Audience         string `mapstructure:"audience"         json:"audience"`
-	UsernameClaim    string `mapstructure:"usernameClaim"    json:"usernameClaim"`
-	GroupsClaim      string `mapstructure:"groupsClaim"      json:"groupsClaim"`
-	RolesClaim       string `mapstructure:"rolesClaim"       json:"rolesClaim"`
-	ExtraQueryParams string `mapstructure:"extraQueryParams" json:"extraQueryParams"`
+	IssuerURI     string `mapstructure:"issuerURI"     json:"issuerURI"`
+	SkipTLSVerify bool   `mapstructure:"skipTLSVerify" json:"skipTLSVerify"`
+	ClientID      string `mapstructure:"clientID"      json:"clientID"`
+	Audience      string `mapstructure:"audience"      json:"audience"`
+	UsernameClaim string `mapstructure:"usernameClaim" json:"usernameClaim"`
+	GroupsClaim   string `mapstructure:"groupsClaim"   json:"groupsClaim"`
+	RolesClaim    string `mapstructure:"rolesClaim"    json:"rolesClaim"`
 }
 
 type Security struct {
@@ -76,16 +73,22 @@ func NewEnv() *Env {
 	viper.AddConfigPath(".")    // Look in the current directory
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Println("⚠️ No env.yaml file found, relying on system environment variables")
+		slog.Warn(
+			"No env.yaml file found, relying on system environment variables",
+			slog.Any("error", err),
+		)
 	} else {
-		log.Println("✅ Successfully loaded env.yaml")
+		slog.Info("Successfully loaded env.yaml")
 	}
 
 	viper.AutomaticEnv()
 
 	// Map the environment variables to the Env struct
 	if err := viper.Unmarshal(&env); err != nil {
-		panic(err)
+		if err := viper.Unmarshal(&env); err != nil {
+			slog.Error("Failed to parse environment configuration", slog.Any("error", err))
+			panic(err)
+		}
 	}
 
 	return &env
