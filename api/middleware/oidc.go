@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
@@ -157,14 +158,9 @@ func (a *oidcAuth) validateAudience(claims map[string]any) error {
 			slog.Error("❌ Invalid audience", slog.String("expected", a.Audience), slog.String("got", v))
 			return fmt.Errorf("invalid audience: expected %q, got %q", a.Audience, v)
 		}
-	case []interface{}:
-		valid := false
-		for _, entry := range v {
-			if entryStr, ok := entry.(string); ok && entryStr == a.Audience {
-				valid = true
-				break
-			}
-		}
+	case []string:
+		valid := slices.Contains(v, a.Audience)
+
 		if !valid {
 			slog.Error("❌ Invalid audience", slog.String("expected", a.Audience), slog.Any("got", v))
 			return fmt.Errorf("invalid audience: expected %q, got %v", a.Audience, v)
