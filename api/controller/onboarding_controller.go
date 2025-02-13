@@ -7,20 +7,21 @@ import (
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 )
 
 type OnboardingController struct {
 	OnboardingUsecase domain.OnboardingUsecase
-	getUser           func(ctx context.Context) (string, bool)
+	UserContextReader usercontext.UserContextReader
 }
 
 func NewOnboardingController(
 	onboardingUsecase domain.OnboardingUsecase,
-	getUser func(ctx context.Context) (string, bool),
+	userContextReader usercontext.UserContextReader,
 ) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: onboardingUsecase,
-		getUser:           getUser,
+		UserContextReader: userContextReader,
 	}
 }
 
@@ -30,7 +31,7 @@ func (c *OnboardingController) Onboard(
 ) (api.OnboardRes, error) {
 	slog.Info("🟢 Received Onboarding Request")
 
-	userName, ok := c.getUser(ctx)
+	userName, ok := c.UserContextReader.GetUser(ctx)
 	if !ok {
 		err := fmt.Errorf("user not found in context")
 		slog.Error("❌ Failed to retrieve user from context", slog.Any("error", err))
@@ -50,7 +51,6 @@ func (c *OnboardingController) Onboard(
 		ctx,
 		domain.OnboardingRequest{Group: groupPtr, UserName: userName},
 	)
-
 	if err != nil {
 		slog.Error("❌ Onboarding failed",
 			slog.String("user", userName),

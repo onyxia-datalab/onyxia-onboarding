@@ -7,32 +7,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 )
-
-type contextKey struct {
-	name string
-}
-
-var (
-	userContextKey   = &contextKey{"user"}
-	groupsContextKey = &contextKey{"groups"}
-	rolesContextKey  = &contextKey{"roles"}
-)
-
-func GetUser(ctx context.Context) (string, bool) {
-	user, ok := ctx.Value(userContextKey).(string)
-	return user, ok
-}
-
-func GetGroups(ctx context.Context) ([]string, bool) {
-	groups, ok := ctx.Value(groupsContextKey).([]string)
-	return groups, ok
-}
-
-func GetRoles(ctx context.Context) ([]string, bool) {
-	roles, ok := ctx.Value(rolesContextKey).([]string)
-	return roles, ok
-}
 
 type TokenVerifier interface {
 	Verify(ctx context.Context, token string) (*oidc.IDToken, error)
@@ -49,14 +25,17 @@ type OIDCConfig struct {
 }
 
 type oidcAuth struct {
-	UsernameClaim string
-	GroupsClaim   string
-	RolesClaim    string
-	Verifier      TokenVerifier
-	Audience      string
+	UsernameClaim     string
+	GroupsClaim       string
+	RolesClaim        string
+	Verifier          TokenVerifier
+	Audience          string
+	userContextWriter usercontext.UserContextWriter
 }
 
-type noAuth struct{}
+type noAuth struct {
+	userContextWriter usercontext.UserContextWriter
+}
 
 var (
 	_ api.SecurityHandler = (*oidcAuth)(nil)
@@ -67,11 +46,12 @@ func OidcMiddleware(
 	ctx context.Context,
 	authenticationMode string,
 	config OIDCConfig,
+	userContextWriter usercontext.UserContextWriter,
 ) (api.SecurityHandler, error) {
 
 	if authenticationMode == "none" {
 		slog.Warn("🚀 Running in No-Auth Mode")
-		return &noAuth{}, nil
+		return &noAuth{userContextWriter: userContextWriter}, nil
 	}
 
 	oidcProvider, err := oidc.NewProvider(ctx, config.IssuerURI)
@@ -100,11 +80,12 @@ func OidcMiddleware(
 	)
 
 	return &oidcAuth{
-		UsernameClaim: config.UsernameClaim,
-		Verifier:      verifier,
-		Audience:      config.Audience,
-		GroupsClaim:   config.GroupsClaim,
-		RolesClaim:    config.RolesClaim,
+		UsernameClaim:     config.UsernameClaim,
+		Verifier:          verifier,
+		Audience:          config.Audience,
+		GroupsClaim:       config.GroupsClaim,
+		RolesClaim:        config.RolesClaim,
+		userContextWriter: userContextWriter,
 	}, nil
 }
 
@@ -152,9 +133,9 @@ func (a *oidcAuth) HandleOidc(
 		slog.Any("roles", roles),
 	)
 
-	ctx = context.WithValue(ctx, userContextKey, userStr)
-	ctx = context.WithValue(ctx, groupsContextKey, groups)
-	ctx = context.WithValue(ctx, rolesContextKey, roles)
+	ctx = a.userContextWriter.WithUser(ctx, userStr)
+	ctx = a.userContextWriter.WithGroups(ctx, groups)
+	ctx = a.userContextWriter.WithRoles(ctx, roles)
 
 	return ctx, nil
 }
@@ -242,9 +223,9 @@ func (n *noAuth) HandleOidc(
 	req api.Oidc,
 ) (context.Context, error) {
 
-	ctx = context.WithValue(ctx, userContextKey, "anonymous")
-	ctx = context.WithValue(ctx, groupsContextKey, []string{}) // Empty groups
-	ctx = context.WithValue(ctx, rolesContextKey, []string{})  // Empty roles
+	ctx = n.userContextWriter.WithUser(ctx, "anonymous")
+	ctx = n.userContextWriter.WithGroups(ctx, []string{})
+	ctx = n.userContextWriter.WithRoles(ctx, []string{})
 
 	return ctx, nil
 }

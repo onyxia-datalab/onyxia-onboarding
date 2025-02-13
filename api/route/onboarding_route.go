@@ -1,7 +1,6 @@
 package route
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -9,6 +8,7 @@ import (
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/kubernetes"
 	"github.com/onyxia-datalab/onyxia-onboarding/usecase"
 )
@@ -17,7 +17,7 @@ func SetupOnboardingRoutes(
 	app *bootstrap.Application,
 	router chi.Router,
 	auth api.SecurityHandler,
-	getUser func(ctx context.Context) (string, bool),
+	userContextReader usercontext.UserContextReader,
 ) {
 
 	namespaceCreator := kubernetes.NewKubernetesNamespaceService(app.K8sClient.Clientset)
@@ -69,7 +69,7 @@ func SetupOnboardingRoutes(
 		},
 	)
 
-	controller := controller.NewOnboardingController(onboardingUsecase, getUser)
+	controller := controller.NewOnboardingController(onboardingUsecase, userContextReader)
 
 	srv, err := api.NewServer(controller, auth)
 	if err != nil {

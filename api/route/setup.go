@@ -4,6 +4,7 @@ import (
 	"context"
 
 	middleware "github.com/onyxia-datalab/onyxia-onboarding/api/middleware"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
@@ -11,9 +12,12 @@ import (
 
 func Setup(app *bootstrap.Application, r *chi.Mux) {
 
+	userContextReader, userContextWriter := usercontext.NewUserContext()
+
 	auth, err := middleware.OidcMiddleware(context.Background(),
 		app.Env.AuthenticationMode,
 		middleware.OIDCConfig(app.Env.OIDC),
+		userContextWriter,
 	)
 
 	if err != nil {
@@ -21,6 +25,6 @@ func Setup(app *bootstrap.Application, r *chi.Mux) {
 	}
 
 	r.Group(func(r chi.Router) {
-		SetupOnboardingRoutes(app, r, auth, middleware.GetUser)
+		SetupOnboardingRoutes(app, r, auth, userContextReader)
 	})
 }
