@@ -1,8 +1,8 @@
 package bootstrap
 
 import (
-	"log/slog"
 	"github.com/spf13/viper"
+	"log/slog"
 )
 
 type OIDC struct {
