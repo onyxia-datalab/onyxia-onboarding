@@ -104,7 +104,7 @@ func TestExtractStringArray(t *testing.T) {
 	}{
 		{
 			"Valid array",
-			map[string]any{"groups": []string{"group1", "group2"}},
+			map[string]any{"groups": []any{"group1", "group2"}},
 			"groups",
 			[]string{"group1", "group2"},
 		},

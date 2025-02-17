@@ -196,15 +196,28 @@ func (a *oidcAuth) extractStringArray(claims map[string]any, claimName string) [
 
 	value, exists := claims[claimName]
 	if !exists {
+		slog.Warn("Claim not found", slog.String("claim", claimName))
 		return nil
 	}
 
-	result, ok := value.([]string)
-	if !ok {
-		return nil
+	if arr, ok := value.([]interface{}); ok {
+		var result []string
+		for _, v := range arr {
+			if str, ok := v.(string); ok {
+				result = append(result, str)
+			} else {
+				slog.Warn("Skipping non-string value in claim", slog.String("claim", claimName), slog.Any("value", v))
+			}
+		}
+		return result
 	}
 
-	return result
+	slog.Warn(
+		"Unexpected format for claim",
+		slog.String("claim", claimName),
+		slog.Any("value", value),
+	)
+	return nil
 }
 
 func (n *noAuth) HandleOidc(
