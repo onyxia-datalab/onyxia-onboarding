@@ -27,9 +27,9 @@ func Setup(app *bootstrap.Application, r *chi.Mux) error {
 		return fmt.Errorf("failed to initialize OIDC middleware: %w", err)
 	}
 
-	onboardingRoute := NewOnboardingRoute(app, userContextReader)
+	onboardingController := SetupOnboardingController(app, userContextReader)
 
-	handler := &MyHandler{onboardImpl: onboardingRoute}
+	handler := &MyHandler{onboardImpl: onboardingController.Onboard}
 
 	srv, err := oas.NewServer(
 		handler,

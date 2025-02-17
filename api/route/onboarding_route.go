@@ -1,10 +1,7 @@
 package route
 
 import (
-	"context"
-
 	"github.com/onyxia-datalab/onyxia-onboarding/api/controller"
-	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
@@ -12,10 +9,10 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/usecase"
 )
 
-func NewOnboardingRoute(
+func SetupOnboardingController(
 	app *bootstrap.Application,
 	userContextReader usercontext.UserContextReader,
-) func(ctx context.Context, req *api.OnboardingRequest) (api.OnboardRes, error) {
+) *controller.OnboardingController {
 	namespaceCreator := kubernetes.NewKubernetesNamespaceService(app.K8sClient.Clientset)
 
 	onboardingUsecase := usecase.NewOnboardingUsecase(
@@ -65,8 +62,6 @@ func NewOnboardingRoute(
 		},
 	)
 
-	controller := controller.NewOnboardingController(onboardingUsecase, userContextReader)
-
-	return controller.Onboard
+	return controller.NewOnboardingController(onboardingUsecase, userContextReader)
 
 }
