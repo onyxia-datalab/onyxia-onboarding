@@ -18,7 +18,7 @@ type KubernetesClient struct {
 	Clientset *kubernetes.Clientset
 }
 
-func NewKubernetesClient() *KubernetesClient {
+func NewKubernetesClient() (*KubernetesClient, error) {
 	var config *rest.Config
 	var err error
 
@@ -33,24 +33,21 @@ func NewKubernetesClient() *KubernetesClient {
 
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
-			slog.Error("❌ Failed to load kubeconfig", slog.Any("error", err))
-			panic(err) // Still exit on failure
+			return nil, fmt.Errorf("failed to load kubeconfig: %w", err)
 		}
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		slog.Error("❌ Failed to create Kubernetes client", slog.Any("error", err))
-		panic(err) // Still exit on failure
+		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
 	err = checkConnectivity(clientset)
 	if err != nil {
-		slog.Error("❌ Failed to connect to the APIServer", slog.Any("error", err))
-		panic(err) // Still exit on failure
+		return nil, fmt.Errorf("failed to connect to Kubernetes API server: %w", err)
 	}
 
-	return &KubernetesClient{Clientset: clientset}
+	return &KubernetesClient{Clientset: clientset}, nil
 }
 
 func checkConnectivity(clientSet *kubernetes.Clientset) error {

@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/spf13/viper"
@@ -65,7 +66,7 @@ type Env struct {
 	Service            Service           `mapstructure:"service"            json:"service"`
 }
 
-func NewEnv() *Env {
+func NewEnv() (*Env, error) {
 	env := Env{}
 
 	// Define the list of config files in priority order (low -> high priority)
@@ -86,11 +87,9 @@ func NewEnv() *Env {
 
 	// Map the environment variables to the Env struct
 	if err := viper.Unmarshal(&env); err != nil {
-		if err := viper.Unmarshal(&env); err != nil {
-			slog.Error("Failed to parse environment configuration", slog.Any("error", err))
-			panic(err)
-		}
+		slog.Error("Failed to parse environment configuration", slog.Any("error", err))
+		return nil, fmt.Errorf("failed to parse environment configuration: %w", err)
 	}
 
-	return &env
+	return &env, nil
 }
