@@ -4,24 +4,26 @@ import (
 	"log"
 	"log/slog"
 
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 	"go.uber.org/zap"
 	"go.uber.org/zap/exp/zapslog"
 )
 
-func NewLogger() *slog.Logger {
+func NewLogger(userReaderCtx usercontext.UserContextReader) *slog.Logger {
 	zapLogger, err := zap.NewProduction()
 
 	if err != nil {
 		log.Fatalf("Failed to initialize zap logger: %v", err)
 	}
 
-	handler := zapslog.NewHandler(
+	baseHandler := zapslog.NewHandler(
 		zapLogger.Core(),
 		zapslog.WithCaller(true),
-		//zapslog.AddStacktraceAt(slog.LevelDebug),
 	)
 
-	return slog.New(handler)
+	contextHandler := NewUserContextLogger(baseHandler, userReaderCtx)
+
+	return slog.New(contextHandler)
 }
 
 func FlushLogger() {

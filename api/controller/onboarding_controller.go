@@ -38,13 +38,12 @@ func (c *OnboardingController) Onboard(
 		return &api.OnboardForbidden{}, err
 	}
 
-	slog.Info("🔵 User identified", slog.String("user", userName))
+	slog.InfoContext(ctx, "🔵 User identified")
 
 	// Extract optional value from OptString
 	var groupPtr *string
 	if req.Group.Set { // Check if value is set
 		groupPtr = &req.Group.Value
-		slog.Info("📌 Group provided", slog.String("group", req.Group.Value))
 	}
 
 	err := c.OnboardingUsecase.Onboard(
@@ -52,17 +51,12 @@ func (c *OnboardingController) Onboard(
 		domain.OnboardingRequest{Group: groupPtr, UserName: userName},
 	)
 	if err != nil {
-		slog.Error("❌ Onboarding failed",
-			slog.String("user", userName),
-			slog.Any("group", groupPtr),
+		slog.ErrorContext(ctx, "❌ Onboarding failed",
 			slog.Any("error", err),
 		)
 		return &api.OnboardForbidden{}, err
 	}
 
-	slog.Info("✅ Onboarding successful",
-		slog.String("user", userName),
-		slog.Any("group", groupPtr),
-	)
+	slog.InfoContext(ctx, "✅ Onboarding successful")
 	return &api.OnboardOK{}, nil
 }

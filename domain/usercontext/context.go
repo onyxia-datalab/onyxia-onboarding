@@ -1,6 +1,8 @@
 package usercontext
 
-import "context"
+import (
+	"context"
+)
 
 type contextKey struct {
 	name string

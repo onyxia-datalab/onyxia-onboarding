@@ -4,14 +4,12 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/api/controller"
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/kubernetes"
 	"github.com/onyxia-datalab/onyxia-onboarding/usecase"
 )
 
 func SetupOnboardingController(
 	app *bootstrap.Application,
-	userContextReader usercontext.UserContextReader,
 ) *controller.OnboardingController {
 	namespaceCreator := kubernetes.NewKubernetesNamespaceService(app.K8sClient.Clientset)
 
@@ -62,6 +60,6 @@ func SetupOnboardingController(
 		},
 	)
 
-	return controller.NewOnboardingController(onboardingUsecase, userContextReader)
+	return controller.NewOnboardingController(onboardingUsecase, app.UserContextReader)
 
 }

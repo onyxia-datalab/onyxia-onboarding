@@ -7,7 +7,6 @@ import (
 
 	middleware "github.com/onyxia-datalab/onyxia-onboarding/api/middleware"
 	oas "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
@@ -15,19 +14,17 @@ import (
 
 func Setup(app *bootstrap.Application, r *chi.Mux) error {
 
-	userContextReader, userContextWriter := usercontext.NewUserContext()
-
 	auth, err := middleware.OidcMiddleware(context.Background(),
 		app.Env.AuthenticationMode,
 		middleware.OIDCConfig(app.Env.OIDC),
-		userContextWriter,
+		app.UserContextWriter,
 	)
 
 	if err != nil {
 		return fmt.Errorf("failed to initialize OIDC middleware: %w", err)
 	}
 
-	onboardingController := SetupOnboardingController(app, userContextReader)
+	onboardingController := SetupOnboardingController(app)
 
 	handler := &MyHandler{onboardImpl: onboardingController.Onboard}
 

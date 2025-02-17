@@ -118,7 +118,7 @@ func TestGetQuota_GroupQuota(t *testing.T) {
 	groupName := testGroupName
 	req := domain.OnboardingRequest{Group: &groupName, UserName: testUserName}
 
-	quota := usecase.getQuota(req, groupNamespace)
+	quota := usecase.getQuota(context.Background(), req, groupNamespace)
 
 	assert.Equal(t, &quotas.Group, quota)
 }
@@ -134,7 +134,7 @@ func TestGetQuota_UserQuota(t *testing.T) {
 
 	req := domain.OnboardingRequest{Group: nil, UserName: testUserName}
 
-	quota := usecase.getQuota(req, userNamespace)
+	quota := usecase.getQuota(context.Background(), req, userNamespace)
 
 	assert.Equal(t, &quotas.User, quota)
 }
@@ -149,7 +149,7 @@ func TestGetQuota_DefaultQuota(t *testing.T) {
 
 	req := domain.OnboardingRequest{Group: nil, UserName: testUserName}
 
-	quota := usecase.getQuota(req, userNamespace)
+	quota := usecase.getQuota(context.Background(), req, userNamespace)
 
 	assert.Equal(t, &quotas.Default, quota)
 }

@@ -4,17 +4,26 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/kubernetes"
 )
 
 type Application struct {
-	Env       *Env
-	K8sClient *kubernetes.KubernetesClient
+	Env               *Env
+	K8sClient         *kubernetes.KubernetesClient
+	UserContextReader usercontext.UserContextReader
+	UserContextWriter usercontext.UserContextWriter
 }
 
 func App() Application {
-	InitLogger()
 	app := &Application{}
+
+	// Initialize User Context
+	userReader, userWriter := usercontext.NewUserContext()
+	app.UserContextReader = userReader
+	app.UserContextWriter = userWriter
+
+	InitLogger(userReader)
 
 	env, err := NewEnv()
 	if err != nil {

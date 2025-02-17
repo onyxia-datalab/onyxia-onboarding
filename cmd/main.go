@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	slogchi "github.com/samber/slog-chi"
+	"github.com/go-chi/httplog/v2"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/onyxia-datalab/onyxia-onboarding/api/route"
@@ -19,13 +19,17 @@ func main() {
 	app := bootstrap.App()
 	env := app.Env
 
-	// Get logger (slog.Default() is already set by bootsrap.App())
-	logger := slog.Default()
-
 	r := chi.NewRouter()
 
-	//Logger middleware needs to be at top
-	r.Use(slogchi.New(logger))
+	r.Use(
+		httplog.RequestLogger(
+			&httplog.Logger{
+				Logger:  slog.Default(),
+				Options: httplog.Options{Concise: true, RequestHeaders: true},
+			},
+		),
+	)
+
 	r.Use(middleware.Recoverer)
 
 	r.Use(middleware.Heartbeat("/"))
