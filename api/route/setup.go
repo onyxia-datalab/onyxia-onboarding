@@ -2,8 +2,10 @@ package route
 
 import (
 	"context"
+	"net/http"
 
 	middleware "github.com/onyxia-datalab/onyxia-onboarding/api/middleware"
+	oas "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 
 	"github.com/go-chi/chi/v5"
@@ -24,7 +26,18 @@ func Setup(app *bootstrap.Application, r *chi.Mux) {
 		panic(err)
 	}
 
-	r.Group(func(r chi.Router) {
-		SetupOnboardingRoutes(app, r, auth, userContextReader)
-	})
+	onboardingRoute := NewOnboardingRoute(app, userContextReader)
+
+	handler := &MyHandler{onboardImpl: onboardingRoute}
+
+	srv, err := oas.NewServer(
+		handler,
+		auth,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	r.Mount("/", http.HandlerFunc(srv.ServeHTTP))
 }
