@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -44,11 +45,17 @@ func main() {
 		MaxAge:           300,
 	}).Handler)
 
-	route.Setup(&app, r)
+	if err := route.Setup(&app, r); err != nil {
+		slog.Error("failed to set up routes: %v", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	slog.Info("Server starting...", slog.String("address", ":8080"))
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
-		slog.Error("❌ Server failed",
+		slog.Error("failed to listen and serve",
 			slog.Any("error", err),
 		)
+		os.Exit(1)
 	}
 }

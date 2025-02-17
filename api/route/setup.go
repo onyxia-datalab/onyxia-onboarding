@@ -2,6 +2,7 @@ package route
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	middleware "github.com/onyxia-datalab/onyxia-onboarding/api/middleware"
@@ -12,7 +13,7 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/bootstrap"
 )
 
-func Setup(app *bootstrap.Application, r *chi.Mux) {
+func Setup(app *bootstrap.Application, r *chi.Mux) error {
 
 	userContextReader, userContextWriter := usercontext.NewUserContext()
 
@@ -23,7 +24,7 @@ func Setup(app *bootstrap.Application, r *chi.Mux) {
 	)
 
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to initialize OIDC middleware: %w", err)
 	}
 
 	onboardingRoute := NewOnboardingRoute(app, userContextReader)
@@ -36,8 +37,9 @@ func Setup(app *bootstrap.Application, r *chi.Mux) {
 	)
 
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to create api server: %w", err)
 	}
 
 	r.Mount("/", http.HandlerFunc(srv.ServeHTTP))
+	return nil
 }
