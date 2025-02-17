@@ -20,4 +20,5 @@ type Quotas struct {
 	User         Quota
 	GroupEnabled bool
 	Group        Quota
+	Roles        map[string]Quota
 }

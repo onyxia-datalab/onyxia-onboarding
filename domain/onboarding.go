@@ -5,8 +5,9 @@ import (
 )
 
 type OnboardingRequest struct {
-	Group    *string // Use pointer to indicate optional value
-	UserName string
+	Group     *string // Use pointer to indicate optional value
+	UserName  string
+	UserRoles []string
 }
 
 type OnboardingUsecase interface {

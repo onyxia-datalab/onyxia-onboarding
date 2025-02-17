@@ -13,53 +13,46 @@ func SetupOnboardingController(
 ) *controller.OnboardingController {
 	namespaceCreator := kubernetes.NewKubernetesNamespaceService(app.K8sClient.Clientset)
 
+	envQuotas := app.Env.Service.Quotas
+
+	rolesDomainQuotas := func() map[string]domain.Quota {
+		result := make(map[string]domain.Quota)
+		for key, q := range envQuotas.Roles {
+			result[key] = convertBootstrapQuotaToDomain(q)
+		}
+		return result
+	}()
+
 	onboardingUsecase := usecase.NewOnboardingUsecase(
 		namespaceCreator,
 		app.Env.Service.NamespacePrefix,
 		app.Env.Service.GroupNamespacePrefix,
 		domain.Quotas{
-			Enabled: app.Env.Service.Quotas.Enabled,
-			Default: domain.Quota{
-				MemoryRequest:           app.Env.Service.Quotas.Default.RequestsMemory,
-				CPURequest:              app.Env.Service.Quotas.Default.RequestsCPU,
-				MemoryLimit:             app.Env.Service.Quotas.Default.LimitsMemory,
-				CPULimit:                app.Env.Service.Quotas.Default.LimitsCPU,
-				StorageRequest:          app.Env.Service.Quotas.Default.RequestsStorage,
-				MaxPods:                 app.Env.Service.Quotas.Default.CountPods,
-				EphemeralStorageRequest: app.Env.Service.Quotas.Default.RequestsEphemeralStorage,
-				EphemeralStorageLimit:   app.Env.Service.Quotas.Default.LimitsEphemeralStorage,
-				GPURequest:              app.Env.Service.Quotas.Default.RequestsGPU,
-				GPULimit:                app.Env.Service.Quotas.Default.LimitsGPU,
-			},
-			UserEnabled: app.Env.Service.Quotas.UserEnabled,
-			User: domain.Quota{
-				MemoryRequest:           app.Env.Service.Quotas.User.RequestsMemory,
-				CPURequest:              app.Env.Service.Quotas.User.RequestsCPU,
-				MemoryLimit:             app.Env.Service.Quotas.User.LimitsMemory,
-				CPULimit:                app.Env.Service.Quotas.User.LimitsCPU,
-				StorageRequest:          app.Env.Service.Quotas.User.RequestsStorage,
-				MaxPods:                 app.Env.Service.Quotas.User.CountPods,
-				EphemeralStorageRequest: app.Env.Service.Quotas.User.RequestsEphemeralStorage,
-				EphemeralStorageLimit:   app.Env.Service.Quotas.User.LimitsEphemeralStorage,
-				GPURequest:              app.Env.Service.Quotas.User.RequestsGPU,
-				GPULimit:                app.Env.Service.Quotas.User.LimitsGPU,
-			},
-			GroupEnabled: app.Env.Service.Quotas.GroupEnabled,
-			Group: domain.Quota{
-				MemoryRequest:           app.Env.Service.Quotas.Group.RequestsMemory,
-				CPURequest:              app.Env.Service.Quotas.Group.RequestsCPU,
-				MemoryLimit:             app.Env.Service.Quotas.Group.LimitsMemory,
-				CPULimit:                app.Env.Service.Quotas.Group.LimitsCPU,
-				StorageRequest:          app.Env.Service.Quotas.Group.RequestsStorage,
-				MaxPods:                 app.Env.Service.Quotas.Group.CountPods,
-				EphemeralStorageRequest: app.Env.Service.Quotas.Group.RequestsEphemeralStorage,
-				EphemeralStorageLimit:   app.Env.Service.Quotas.Group.LimitsEphemeralStorage,
-				GPURequest:              app.Env.Service.Quotas.Group.RequestsGPU,
-				GPULimit:                app.Env.Service.Quotas.Group.LimitsGPU,
-			},
+			Enabled:      envQuotas.Enabled,
+			Default:      convertBootstrapQuotaToDomain(envQuotas.Default),
+			UserEnabled:  envQuotas.UserEnabled,
+			User:         convertBootstrapQuotaToDomain(envQuotas.User),
+			Roles:        rolesDomainQuotas,
+			GroupEnabled: envQuotas.GroupEnabled,
+			Group:        convertBootstrapQuotaToDomain(envQuotas.Group),
 		},
 	)
 
 	return controller.NewOnboardingController(onboardingUsecase, app.UserContextReader)
 
+}
+
+func convertBootstrapQuotaToDomain(q bootstrap.Quota) domain.Quota {
+	return domain.Quota{
+		MemoryRequest:           q.RequestsMemory,
+		CPURequest:              q.RequestsCPU,
+		MemoryLimit:             q.LimitsMemory,
+		CPULimit:                q.LimitsCPU,
+		StorageRequest:          q.RequestsStorage,
+		MaxPods:                 q.CountPods,
+		EphemeralStorageRequest: q.RequestsEphemeralStorage,
+		EphemeralStorageLimit:   q.LimitsEphemeralStorage,
+		GPURequest:              q.RequestsGPU,
+		GPULimit:                q.LimitsGPU,
+	}
 }
