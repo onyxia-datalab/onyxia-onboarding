@@ -12,6 +12,10 @@ import (
 //go:embed env.default.yaml
 var defaultConfig []byte
 
+type Server struct {
+	Port int `mapstructure:"port" json:"port"`
+}
+
 type OIDC struct {
 	IssuerURI     string `mapstructure:"issuerURI"     json:"issuerURI"`
 	SkipTLSVerify bool   `mapstructure:"skipTLSVerify" json:"skipTLSVerify"`
@@ -65,6 +69,7 @@ type Service struct {
 type Env struct {
 	AppEnv             string            `mapstructure:"appEnv"             json:"appEnv"`
 	AuthenticationMode string            `mapstructure:"authenticationMode" json:"authenticationMode"`
+	Server             Server            `mapstructure:"server"             json:"server"`
 	OIDC               OIDC              `mapstructure:"oidc"               json:"oidc"`
 	Security           Security          `mapstructure:"security"           json:"security"`
 	K8SPublicEndpoint  K8SPublicEndpoint `mapstructure:"k8sPublicEndpoint"  json:"k8sPublicEndpoint"`

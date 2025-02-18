@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -54,9 +55,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	slog.Info("Server starting...", slog.String("address", ":8080"))
+	address := fmt.Sprintf(":%d", env.Server.Port)
 
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	slog.Info("Server starting...", slog.String("address", address))
+
+	if err := http.ListenAndServe(address, r); err != nil {
 		slog.Error("failed to listen and serve",
 			slog.Any("error", err),
 		)
