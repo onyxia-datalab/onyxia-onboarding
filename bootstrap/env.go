@@ -1,11 +1,16 @@
 package bootstrap
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
 	"log/slog"
 
 	"github.com/spf13/viper"
 )
+
+//go:embed env.default.yaml
+var defaultConfig []byte
 
 type OIDC struct {
 	IssuerURI     string `mapstructure:"issuerURI"     json:"issuerURI"`
@@ -69,18 +74,25 @@ type Env struct {
 func NewEnv() (*Env, error) {
 	env := Env{}
 
-	// Define the list of config files in priority order (low -> high priority)
-	configFiles := []string{"env.default", "env"}
-	viper.SetConfigType("yaml") // File type
+	viper.SetConfigType("yaml")
 
-	for _, file := range configFiles {
-		viper.SetConfigName(file) // Name without extension
-		viper.AddConfigPath(".")  // Look in the current directory
+	// ✅ Load embedded default config first
+	if err := viper.ReadConfig(bytes.NewReader(defaultConfig)); err != nil {
+		slog.Error("Failed to read embedded default config", slog.Any("error", err))
+		return nil, fmt.Errorf("failed to read embedded default config: %w", err)
+	} else {
+		slog.Info("Successfully loaded embedded default config")
+	}
 
-		// Merge the configurations instead of replacing
-		if err := viper.MergeInConfig(); err == nil {
-			slog.Info("Loaded config file", slog.String("file", file))
-		}
+	// ✅ Now look for an external `env.yaml` in the project root
+	viper.SetConfigFile("env.yaml")
+	viper.AddConfigPath(".") // Look in root directory
+
+	// ✅ If `env.yaml` exists, merge it (it overrides embedded defaults)
+	if err := viper.MergeInConfig(); err == nil {
+		slog.Info("Loaded external config file", slog.String("file", "env.yaml"))
+	} else {
+		slog.Warn("No external config file found, using embedded defaults")
 	}
 
 	viper.AutomaticEnv()
