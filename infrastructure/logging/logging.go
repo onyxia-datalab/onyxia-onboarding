@@ -4,7 +4,7 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
 	"go.uber.org/zap"
 	"go.uber.org/zap/exp/zapslog"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
 )
 
 type userContextHandler struct {
@@ -17,7 +17,7 @@ func (h *userContextHandler) Enabled(ctx context.Context, level slog.Level) bool
 }
 
 func (h *userContextHandler) Handle(ctx context.Context, record slog.Record) error {
-	if user, ok := h.userCtxReader.GetUser(ctx); ok {
+	if user, ok := h.userCtxReader.GetUsername(ctx); ok {
 		record.AddAttrs(slog.String("username", user))
 	}
 

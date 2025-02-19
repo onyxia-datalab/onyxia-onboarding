@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
 	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/kubernetes"
 )
 
