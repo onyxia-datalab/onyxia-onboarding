@@ -29,6 +29,7 @@ var _ interfaces.NamespaceService = (*MockNamespaceService)(nil)
 func (m *MockNamespaceService) CreateNamespace(
 	ctx context.Context,
 	name string,
+	annotations map[string]string,
 ) (interfaces.NamespaceCreationResult, error) {
 	args := m.Called(ctx, name)
 	return args.Get(0).(interfaces.NamespaceCreationResult), args.Error(1)
@@ -47,7 +48,13 @@ func setupUsecase(
 	mockService *MockNamespaceService,
 	quotas domain.Quotas,
 ) domain.OnboardingUsecase {
-	return NewOnboardingUsecase(mockService, namespacePrefix, groupNamespacePref, quotas)
+	return NewOnboardingUsecase(
+		mockService,
+		namespacePrefix,
+		groupNamespacePref,
+		quotas,
+		map[string]string{},
+	)
 }
 
 func setupPrivateUsecase(
@@ -59,5 +66,6 @@ func setupPrivateUsecase(
 		namespacePrefix:      namespacePrefix,
 		groupNamespacePrefix: groupNamespacePref,
 		quotas:               quotas,
+		namespaceAnnotations: map[string]string{},
 	}
 }

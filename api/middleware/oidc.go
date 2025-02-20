@@ -8,7 +8,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain"
+	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
 )
 
 type TokenVerifier interface {
@@ -119,7 +120,7 @@ func (a *oidcAuth) HandleOidc(
 	}
 
 	// ✅ Extract user
-	userStr, err := a.extractClaim(claims, a.UsernameClaim)
+	username, err := a.extractClaim(claims, a.UsernameClaim)
 	if err != nil {
 		return ctx, err
 	}
@@ -128,15 +129,16 @@ func (a *oidcAuth) HandleOidc(
 	roles := a.extractStringArray(claims, a.RolesClaim)
 
 	slog.Info("✅ OIDC Authentication Successful",
-		slog.String("user", userStr),
+		slog.String("user", username),
 		slog.String("operation", operation),
 		slog.Any("groups", groups),
 		slog.Any("roles", roles),
 	)
 
-	ctx = a.userContextWriter.WithUser(ctx, userStr)
-	ctx = a.userContextWriter.WithGroups(ctx, groups)
-	ctx = a.userContextWriter.WithRoles(ctx, roles)
+	ctx = a.userContextWriter.WithUser(
+		ctx,
+		&domain.User{Username: username, Groups: groups, Roles: roles},
+	)
 
 	return ctx, nil
 }
@@ -226,9 +228,10 @@ func (n *noAuth) HandleOidc(
 	req api.Oidc,
 ) (context.Context, error) {
 
-	ctx = n.userContextWriter.WithUser(ctx, "anonymous")
-	ctx = n.userContextWriter.WithGroups(ctx, []string{})
-	ctx = n.userContextWriter.WithRoles(ctx, []string{})
+	ctx = n.userContextWriter.WithUser(
+		ctx,
+		&domain.User{Username: "anonymous", Groups: []string{}, Roles: []string{}},
+	)
 
 	return ctx, nil
 }

@@ -10,8 +10,9 @@ type NamespaceCreationResult string
 type QuotaApplicationResult string
 
 const (
-	NamespaceCreated       NamespaceCreationResult = "created"
-	NamespaceAlreadyExists NamespaceCreationResult = "already_exists"
+	NamespaceCreated            NamespaceCreationResult = "created"
+	NamespaceAlreadyExists      NamespaceCreationResult = "already_exists"
+	NamespaceAnnotationsUpdated NamespaceCreationResult = "annotations_updated"
 )
 
 const (
@@ -22,7 +23,8 @@ const (
 )
 
 type NamespaceService interface {
-	CreateNamespace(ctx context.Context, name string) (NamespaceCreationResult, error)
+	CreateNamespace(ctx context.Context, name string, annotations map[string]string,
+	) (NamespaceCreationResult, error)
 	ApplyResourceQuotas(
 		ctx context.Context,
 		namespace string,
