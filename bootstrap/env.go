@@ -62,9 +62,11 @@ type Quotas struct {
 }
 
 type Service struct {
-	NamespacePrefix      string `mapstructure:"namespacePrefix"      json:"namespacePrefix"`
-	GroupNamespacePrefix string `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
-	Quotas               Quotas `mapstructure:"quotas"               json:"quotas"`
+	NamespacePrefix             string            `mapstructure:"namespacePrefix"             json:"namespacePrefix"`
+	GroupNamespacePrefix        string            `mapstructure:"groupNamespacePrefix"        json:"groupNamespacePrefix"`
+	NamespaceAnnotations        map[string]string `mapstructure:"namespaceAnnotations"        json:"namespaceAnnotations"`
+	NamespaceAnnotationsDynamic map[string]string `mapstructure:"namespaceAnnotationsDynamic" json:"namespaceAnnotationsDynamic"`
+	Quotas                      Quotas            `mapstructure:"quotas"                      json:"quotas"`
 }
 
 type Env struct {

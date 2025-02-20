@@ -8,7 +8,13 @@ import (
 )
 
 func (s *onboardingUsecase) createNamespace(ctx context.Context, namespace string) error {
-	result, err := s.namespaceService.CreateNamespace(ctx, namespace)
+	result, err := s.namespaceService.CreateNamespace(
+		ctx,
+		namespace,
+		s.getNamespaceAnnotations(ctx),
+	)
+
+	slog.Info("result create Namespace", slog.String("result", string(result)))
 
 	if err != nil {
 		slog.ErrorContext(ctx, "❌ Failed to create namespace",
@@ -30,4 +36,11 @@ func (s *onboardingUsecase) createNamespace(ctx context.Context, namespace strin
 	}
 
 	return nil
+}
+
+func (s *onboardingUsecase) getNamespaceAnnotations(
+	ctx context.Context,
+) map[string]string {
+
+	return s.namespaceAnnotations
 }

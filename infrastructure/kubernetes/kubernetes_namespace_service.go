@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
@@ -10,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	k8s "k8s.io/client-go/kubernetes"
 )
 
@@ -29,17 +31,52 @@ func NewKubernetesNamespaceService(clientset k8s.Interface) interfaces.Namespace
 func (s *KubernetesNamespaceService) CreateNamespace(
 	ctx context.Context,
 	name string,
+	annotations map[string]string,
 ) (interfaces.NamespaceCreationResult, error) {
 	namespacesClient := s.clientset.CoreV1().Namespaces()
 
 	namespace := &v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: name},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Annotations: annotations,
+		},
 	}
 
 	_, err := namespacesClient.Create(ctx, namespace, metav1.CreateOptions{})
 
 	if errors.IsAlreadyExists(err) {
-		return interfaces.NamespaceAlreadyExists, nil
+
+		if len(annotations) == 0 {
+			return interfaces.NamespaceAlreadyExists, nil
+		}
+
+		// 🔹 We update annotations (even if it might be unnecessary)
+		//    - To check if an update is actually required, we would need to make a `Get()` request.
+		//    - To avoid extra API calls, we simply apply the patch directly.
+		//    - Kubernetes will internally handle cases where no actual change is needed.
+
+		patchData := map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"annotations": annotations,
+			},
+		}
+
+		patchBytes, err := json.Marshal(patchData)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal patch data: %w", err)
+		}
+
+		_, err = namespacesClient.Patch(
+			ctx,
+			name,
+			types.MergePatchType,
+			patchBytes,
+			metav1.PatchOptions{},
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to update namespace annotations: %w", err)
+		}
+		return interfaces.NamespaceAnnotationsUpdated, nil
 	}
 
 	if err != nil {

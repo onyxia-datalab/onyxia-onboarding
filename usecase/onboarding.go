@@ -12,18 +12,21 @@ type onboardingUsecase struct {
 	namespacePrefix      string
 	groupNamespacePrefix string
 	quotas               domain.Quotas
+	namespaceAnnotations map[string]string
 }
 
 func NewOnboardingUsecase(
 	namespaceService interfaces.NamespaceService,
 	namespacePrefix, groupNamespacePrefix string,
 	quotas domain.Quotas,
+	namespaceAnnotations map[string]string,
 ) *onboardingUsecase {
 	return &onboardingUsecase{
 		namespaceService:     namespaceService,
 		namespacePrefix:      namespacePrefix,
 		groupNamespacePrefix: groupNamespacePrefix,
 		quotas:               quotas,
+		namespaceAnnotations: namespaceAnnotations,
 	}
 }
 
