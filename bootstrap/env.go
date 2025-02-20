@@ -52,12 +52,13 @@ type Quota struct {
 }
 
 type Quotas struct {
-	Enabled      bool  `mapstructure:"enabled"      json:"enabled"`
-	Default      Quota `mapstructure:"default"      json:"default"`
-	UserEnabled  bool  `mapstructure:"userEnabled"  json:"userEnabled"`
-	User         Quota `mapstructure:"user"         json:"user"`
-	GroupEnabled bool  `mapstructure:"groupEnabled" json:"groupEnabled"`
-	Group        Quota `mapstructure:"group"        json:"group"`
+	Enabled      bool             `mapstructure:"enabled"      json:"enabled"`
+	Default      Quota            `mapstructure:"default"      json:"default"`
+	UserEnabled  bool             `mapstructure:"userEnabled"  json:"userEnabled"`
+	User         Quota            `mapstructure:"user"         json:"user"`
+	GroupEnabled bool             `mapstructure:"groupEnabled" json:"groupEnabled"`
+	Group        Quota            `mapstructure:"group"        json:"group"`
+	Roles        map[string]Quota `mapstructure:"roles"        json:"roles"`
 }
 
 type Service struct {

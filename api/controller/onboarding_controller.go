@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
@@ -40,15 +41,42 @@ func (c *OnboardingController) Onboard(
 
 	slog.InfoContext(ctx, "🔵 User identified")
 
+	userRoles, ok := c.UserContextReader.GetRoles(ctx)
+	if !ok {
+		slog.ErrorContext(ctx, "Failed to retrieve roles from user context")
+	}
+
 	// Extract optional value from OptString
 	var groupPtr *string
 	if req.Group.Set { // Check if value is set
 		groupPtr = &req.Group.Value
+
+		userGroups, ok := c.UserContextReader.GetGroups(ctx)
+		if !ok {
+			err := fmt.Errorf("failed to retrieve groups from user context")
+			slog.ErrorContext(ctx, "❌ Failed to retrieve groups", slog.Any("error", err))
+			return &api.OnboardUnauthorized{}, err
+		}
+
+		// ✅ Check if the requested group is in user's groups
+		if !slices.Contains(userGroups, *groupPtr) {
+			err := fmt.Errorf("user does not have access to group: %s", *groupPtr)
+			slog.ErrorContext(ctx, "❌ Unauthorized group access",
+				slog.String("group", *groupPtr),
+				slog.Any("userGroups", userGroups),
+				slog.Any("error", err),
+			)
+			return &api.OnboardUnauthorized{}, err
+		}
 	}
 
 	err := c.OnboardingUsecase.Onboard(
 		ctx,
-		domain.OnboardingRequest{Group: groupPtr, UserName: userName},
+		domain.OnboardingRequest{
+			Group:     groupPtr,
+			UserName:  userName,
+			UserRoles: userRoles,
+		},
 	)
 	if err != nil {
 		slog.ErrorContext(ctx, "❌ Onboarding failed",

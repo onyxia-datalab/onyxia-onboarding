@@ -66,21 +66,57 @@ func (s *onboardingUsecase) getQuota(
 	req domain.OnboardingRequest,
 	namespace string,
 ) *domain.Quota {
-	switch {
-	case req.Group != nil && s.quotas.GroupEnabled:
-		slog.InfoContext(ctx, "🔹 Applying group quota",
-			slog.String("namespace", namespace),
-		)
-		return &s.quotas.Group
-	case s.quotas.UserEnabled:
+	// ✅ If a group is set, check if group quotas are enabled
+	if req.Group != nil {
+		if s.quotas.GroupEnabled {
+			return s.getGroupQuota(ctx, req, namespace)
+		}
+		// ❌ Group is set, but group quotas are disabled → No quota applied
+		return nil
+	}
+
+	// ✅ Otherwise, apply user quota (roles first)
+	return s.getUserQuota(ctx, req, namespace)
+}
+
+func (s *onboardingUsecase) getGroupQuota(
+	ctx context.Context,
+	req domain.OnboardingRequest,
+	namespace string,
+) *domain.Quota {
+	slog.InfoContext(ctx, "🔹 Applying group quota",
+		slog.String("namespace", namespace),
+		slog.String("group", *req.Group),
+	)
+	return &s.quotas.Group
+}
+
+func (s *onboardingUsecase) getUserQuota(
+	ctx context.Context,
+	req domain.OnboardingRequest,
+	namespace string,
+) *domain.Quota {
+	for _, role := range req.UserRoles {
+		if quota, exists := s.quotas.Roles[role]; exists {
+			slog.InfoContext(ctx, "🔹 Applying role-based user quota",
+				slog.String("namespace", namespace),
+				slog.String("role", role),
+			)
+			return &quota
+		}
+	}
+
+	// ✅ Fallback to user quota (if enabled)
+	if s.quotas.UserEnabled {
 		slog.InfoContext(ctx, "🔹 Applying user quota",
 			slog.String("namespace", namespace),
 		)
 		return &s.quotas.User
-	default:
-		slog.InfoContext(ctx, "🔹 Applying default quota",
-			slog.String("namespace", namespace),
-		)
-		return &s.quotas.Default
 	}
+
+	// ✅ Fallback to default quota
+	slog.InfoContext(ctx, "🔹 Applying default quota",
+		slog.String("namespace", namespace),
+	)
+	return &s.quotas.Default
 }
