@@ -30,14 +30,6 @@ type Security struct {
 	CORSAllowedOrigins []string `mapstructure:"corsAllowedOrigins" json:"corsAllowedOrigins"`
 }
 
-type K8SPublicEndpoint struct {
-	OidcConfiguration struct {
-		IssuerURI string `mapstructure:"issuerURI" json:"issuerURI"`
-		ClientID  string `mapstructure:"clientID" json:"clientID"`
-	} `mapstructure:"oidcConfiguration" json:"oidcConfiguration"`
-	URL string `mapstructure:"URL"               json:"URL"`
-}
-
 type Quota struct {
 	RequestsMemory           string `mapstructure:"requests.memory"            json:"requests.memory"`
 	RequestsCPU              string `mapstructure:"requests.cpu"               json:"requests.cpu"`
@@ -61,20 +53,28 @@ type Quotas struct {
 	Roles        map[string]Quota `mapstructure:"roles"        json:"roles"`
 }
 
-type Service struct {
-	NamespacePrefix      string `mapstructure:"namespacePrefix"      json:"namespacePrefix"`
-	GroupNamespacePrefix string `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
-	Quotas               Quotas `mapstructure:"quotas"               json:"quotas"`
+type Annotation struct {
+	Enabled bool              `mapstructure:"enabled" json:"enabled"`
+	Static  map[string]string `mapstructure:"static"  json:"static"`
+	Dynamic struct {
+		LastLoginTimestamp bool     `mapstructure:"last-login-timestamp" json:"last-login-timestamp"`
+		UserAttributes     []string `mapstructure:"userAttributes" json:"userAttributes"`
+	} `mapstructure:"dynamic" json:"dynamic"`
+}
+type Onboarding struct {
+	NamespacePrefix      string     `mapstructure:"namespacePrefix"      json:"namespacePrefix"`
+	GroupNamespacePrefix string     `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
+	Annotation           Annotation `mapstructure:"annotations"          json:"annotations"`
+	Quotas               Quotas     `mapstructure:"quotas"               json:"quotas"`
 }
 
 type Env struct {
-	AppEnv             string            `mapstructure:"appEnv"             json:"appEnv"`
-	AuthenticationMode string            `mapstructure:"authenticationMode" json:"authenticationMode"`
-	Server             Server            `mapstructure:"server"             json:"server"`
-	OIDC               OIDC              `mapstructure:"oidc"               json:"oidc"`
-	Security           Security          `mapstructure:"security"           json:"security"`
-	K8SPublicEndpoint  K8SPublicEndpoint `mapstructure:"k8sPublicEndpoint"  json:"k8sPublicEndpoint"`
-	Service            Service           `mapstructure:"service"            json:"service"`
+	AppEnv             string     `mapstructure:"appEnv"             json:"appEnv"`
+	AuthenticationMode string     `mapstructure:"authenticationMode" json:"authenticationMode"`
+	Server             Server     `mapstructure:"server"             json:"server"`
+	OIDC               OIDC       `mapstructure:"oidc"               json:"oidc"`
+	Security           Security   `mapstructure:"security"           json:"security"`
+	Onboarding         Onboarding `mapstructure:"onboarding"         json:"onboarding"`
 }
 
 func NewEnv() (*Env, error) {

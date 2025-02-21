@@ -6,12 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
 	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/logging"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
 // InitLogger initializes the global logger and handles log flushing on exit.
-func InitLogger(userReaderCtx usercontext.UserContextReader) {
+func InitLogger(userReaderCtx interfaces.UserContextReader) {
 	logger := logging.NewLogger(userReaderCtx)
 	slog.SetDefault(logger)
 

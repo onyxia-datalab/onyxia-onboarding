@@ -8,22 +8,24 @@ import (
 )
 
 type onboardingUsecase struct {
-	namespaceService     interfaces.NamespaceService
-	namespacePrefix      string
-	groupNamespacePrefix string
-	quotas               domain.Quotas
+	namespaceService  interfaces.NamespaceService
+	namespace         domain.Namespace
+	quotas            domain.Quotas
+	userContextReader interfaces.UserContextReader
 }
 
 func NewOnboardingUsecase(
 	namespaceService interfaces.NamespaceService,
-	namespacePrefix, groupNamespacePrefix string,
+	namespace domain.Namespace,
 	quotas domain.Quotas,
+	userContextReader interfaces.UserContextReader,
+
 ) *onboardingUsecase {
 	return &onboardingUsecase{
-		namespaceService:     namespaceService,
-		namespacePrefix:      namespacePrefix,
-		groupNamespacePrefix: groupNamespacePrefix,
-		quotas:               quotas,
+		namespaceService:  namespaceService,
+		namespace:         namespace,
+		quotas:            quotas,
+		userContextReader: userContextReader,
 	}
 }
 
@@ -43,7 +45,7 @@ func (s *onboardingUsecase) Onboard(ctx context.Context, req domain.OnboardingRe
 
 func (s *onboardingUsecase) getNamespace(req domain.OnboardingRequest) string {
 	if req.Group != nil {
-		return s.groupNamespacePrefix + *req.Group
+		return s.namespace.GroupNamespacePrefix + *req.Group
 	}
-	return s.namespacePrefix + req.UserName
+	return s.namespace.NamespacePrefix + req.UserName
 }

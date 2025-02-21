@@ -4,12 +4,12 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 	"go.uber.org/zap"
 	"go.uber.org/zap/exp/zapslog"
 )
 
-func NewLogger(userReaderCtx usercontext.UserContextReader) *slog.Logger {
+func NewLogger(userReaderCtx interfaces.UserContextReader) *slog.Logger {
 	zapLogger, err := zap.NewProduction()
 
 	if err != nil {

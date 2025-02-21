@@ -8,17 +8,17 @@ import (
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
 type OnboardingController struct {
 	OnboardingUsecase domain.OnboardingUsecase
-	UserContextReader usercontext.UserContextReader
+	UserContextReader interfaces.UserContextReader
 }
 
 func NewOnboardingController(
 	onboardingUsecase domain.OnboardingUsecase,
-	userContextReader usercontext.UserContextReader,
+	userContextReader interfaces.UserContextReader,
 ) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: onboardingUsecase,
@@ -32,8 +32,8 @@ func (c *OnboardingController) Onboard(
 ) (api.OnboardRes, error) {
 	slog.Info("🟢 Received Onboarding Request")
 
-	userName, ok := c.UserContextReader.GetUser(ctx)
-	if !ok {
+	user, ok := c.UserContextReader.GetUser(ctx)
+	if !ok || user == nil {
 		err := fmt.Errorf("user not found in context")
 		slog.Error("❌ Failed to retrieve user from context", slog.Any("error", err))
 		return &api.OnboardForbidden{}, err
@@ -41,43 +41,28 @@ func (c *OnboardingController) Onboard(
 
 	slog.InfoContext(ctx, "🔵 User identified")
 
-	userRoles, ok := c.UserContextReader.GetRoles(ctx)
-	if !ok {
-		slog.ErrorContext(ctx, "Failed to retrieve roles from user context")
-	}
-
 	// Extract optional value from OptString
 	var groupPtr *string
 	if req.Group.Set { // Check if value is set
 		groupPtr = &req.Group.Value
 
-		userGroups, ok := c.UserContextReader.GetGroups(ctx)
-		if !ok {
-			err := fmt.Errorf("failed to retrieve groups from user context")
-			slog.ErrorContext(ctx, "❌ Failed to retrieve groups", slog.Any("error", err))
-			return &api.OnboardUnauthorized{}, err
-		}
-
 		// ✅ Check if the requested group is in user's groups
-		if !slices.Contains(userGroups, *groupPtr) {
+		if !slices.Contains(user.Groups, *groupPtr) {
 			err := fmt.Errorf("user does not have access to group: %s", *groupPtr)
 			slog.ErrorContext(ctx, "❌ Unauthorized group access",
 				slog.String("group", *groupPtr),
-				slog.Any("userGroups", userGroups),
+				slog.Any("userGroups", user.Groups),
 				slog.Any("error", err),
 			)
 			return &api.OnboardUnauthorized{}, err
 		}
 	}
 
-	err := c.OnboardingUsecase.Onboard(
-		ctx,
-		domain.OnboardingRequest{
-			Group:     groupPtr,
-			UserName:  userName,
-			UserRoles: userRoles,
-		},
-	)
+	err := c.OnboardingUsecase.Onboard(ctx, domain.OnboardingRequest{
+		Group:     groupPtr,
+		UserName:  user.Username,
+		UserRoles: user.Roles,
+	})
 	if err != nil {
 		slog.ErrorContext(ctx, "❌ Onboarding failed",
 			slog.Any("error", err),

@@ -13,7 +13,7 @@ func SetupOnboardingController(
 ) *controller.OnboardingController {
 	namespaceCreator := kubernetes.NewKubernetesNamespaceService(app.K8sClient.Clientset)
 
-	envQuotas := app.Env.Service.Quotas
+	envQuotas := app.Env.Onboarding.Quotas
 
 	rolesDomainQuotas := func() map[string]domain.Quota {
 		result := make(map[string]domain.Quota)
@@ -25,8 +25,18 @@ func SetupOnboardingController(
 
 	onboardingUsecase := usecase.NewOnboardingUsecase(
 		namespaceCreator,
-		app.Env.Service.NamespacePrefix,
-		app.Env.Service.GroupNamespacePrefix,
+		domain.Namespace{
+			NamespacePrefix:      app.Env.Onboarding.NamespacePrefix,
+			GroupNamespacePrefix: app.Env.Onboarding.GroupNamespacePrefix,
+			Annotation: domain.Annotation{
+				Enabled: app.Env.Onboarding.Annotation.Enabled,
+				Static:  app.Env.Onboarding.Annotation.Static,
+				Dynamic: struct {
+					LastLoginTimestamp bool
+					UserAttributes     []string
+				}(app.Env.Onboarding.Annotation.Dynamic),
+			},
+		},
 		domain.Quotas{
 			Enabled:      envQuotas.Enabled,
 			Default:      convertBootstrapQuotaToDomain(envQuotas.Default),
@@ -36,6 +46,7 @@ func SetupOnboardingController(
 			GroupEnabled: envQuotas.GroupEnabled,
 			Group:        convertBootstrapQuotaToDomain(envQuotas.Group),
 		},
+		app.UserContextReader,
 	)
 
 	return controller.NewOnboardingController(onboardingUsecase, app.UserContextReader)
