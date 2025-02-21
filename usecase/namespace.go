@@ -47,7 +47,10 @@ func (s *onboardingUsecase) getNamespaceAnnotations(
 		return nil
 	}
 
-	var annotations = s.namespace.Annotation.Static
+	annotations := s.namespace.Annotation.Static
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
 
 	if s.namespace.Annotation.Dynamic.LastLoginTimestamp {
 		annotations["onyxia_last_login_timestamp"] = fmt.Sprint(time.Now().UnixMilli())
