@@ -25,8 +25,18 @@ func SetupOnboardingController(
 
 	onboardingUsecase := usecase.NewOnboardingUsecase(
 		namespaceCreator,
-		app.Env.Onboarding.NamespacePrefix,
-		app.Env.Onboarding.GroupNamespacePrefix,
+		domain.Namespace{
+			NamespacePrefix:      app.Env.Onboarding.NamespacePrefix,
+			GroupNamespacePrefix: app.Env.Onboarding.GroupNamespacePrefix,
+			Annotation: domain.Annotation{
+				Enabled: app.Env.Onboarding.Annotation.Enabled,
+				Static:  app.Env.Onboarding.Annotation.Static,
+				Dynamic: struct {
+					LastLoginTimestamp bool
+					UserAttributes     []string
+				}(app.Env.Onboarding.Annotation.Dynamic),
+			},
+		},
 		domain.Quotas{
 			Enabled:      envQuotas.Enabled,
 			Default:      convertBootstrapQuotaToDomain(envQuotas.Default),
@@ -36,7 +46,7 @@ func SetupOnboardingController(
 			GroupEnabled: envQuotas.GroupEnabled,
 			Group:        convertBootstrapQuotaToDomain(envQuotas.Group),
 		},
-		app.Env.Onboarding.NamespaceAnnotations,
+		app.UserContextReader,
 	)
 
 	return controller.NewOnboardingController(onboardingUsecase, app.UserContextReader)

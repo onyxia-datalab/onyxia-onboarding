@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
+	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
 	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 	"github.com/stretchr/testify/mock"
 )
@@ -44,16 +45,31 @@ func (m *MockNamespaceService) ApplyResourceQuotas(
 	return args.Get(0).(interfaces.QuotaApplicationResult), args.Error(1)
 }
 
+var mockUserContextReader, _ = usercontext.NewMockUserContext(&domain.User{
+	Username: testUserName,
+	Groups:   []string{testGroupName},
+	Roles:    []string{"role1"},
+	Attributes: map[string]any{
+		"attr1": "value1",
+	},
+})
+
 func setupUsecase(
 	mockService *MockNamespaceService,
 	quotas domain.Quotas,
 ) domain.OnboardingUsecase {
 	return NewOnboardingUsecase(
 		mockService,
-		namespacePrefix,
-		groupNamespacePref,
+		domain.Namespace{
+			NamespacePrefix:      namespacePrefix,
+			GroupNamespacePrefix: groupNamespacePref,
+			Annotation: domain.Annotation{
+				Enabled: false,
+				Static:  nil,
+			},
+		},
 		quotas,
-		map[string]string{},
+		mockUserContextReader,
 	)
 }
 
@@ -62,10 +78,16 @@ func setupPrivateUsecase(
 	quotas domain.Quotas,
 ) *onboardingUsecase {
 	return &onboardingUsecase{
-		namespaceService:     mockService,
-		namespacePrefix:      namespacePrefix,
-		groupNamespacePrefix: groupNamespacePref,
-		quotas:               quotas,
-		namespaceAnnotations: map[string]string{},
+		namespaceService: mockService,
+		namespace: domain.Namespace{
+			NamespacePrefix:      namespacePrefix,
+			GroupNamespacePrefix: groupNamespacePref,
+			Annotation: domain.Annotation{
+				Enabled: false,
+				Static:  nil,
+			},
+		},
+		quotas:            quotas,
+		userContextReader: mockUserContextReader,
 	}
 }

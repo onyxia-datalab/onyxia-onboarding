@@ -53,12 +53,19 @@ type Quotas struct {
 	Roles        map[string]Quota `mapstructure:"roles"        json:"roles"`
 }
 
+type Annotation struct {
+	Enabled bool              `mapstructure:"enabled" json:"enabled"`
+	Static  map[string]string `mapstructure:"static"  json:"static"`
+	Dynamic struct {
+		LastLoginTimestamp bool     `mapstructure:"last-login-timestamp" json:"last-login-timestamp"`
+		UserAttributes     []string `mapstructure:"userAttributes" json:"userAttributes"`
+	} `mapstructure:"dynamic" json:"dynamic"`
+}
 type Onboarding struct {
-	NamespacePrefix             string            `mapstructure:"namespacePrefix"             json:"namespacePrefix"`
-	GroupNamespacePrefix        string            `mapstructure:"groupNamespacePrefix"        json:"groupNamespacePrefix"`
-	NamespaceAnnotations        map[string]string `mapstructure:"namespaceAnnotations"        json:"namespaceAnnotations"`
-	NamespaceAnnotationsDynamic map[string]string `mapstructure:"namespaceAnnotationsDynamic" json:"namespaceAnnotationsDynamic"`
-	Quotas                      Quotas            `mapstructure:"quotas"                      json:"quotas"`
+	NamespacePrefix      string     `mapstructure:"namespacePrefix"      json:"namespacePrefix"`
+	GroupNamespacePrefix string     `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
+	Annotation           Annotation `mapstructure:"annotations"          json:"annotations"`
+	Quotas               Quotas     `mapstructure:"quotas"               json:"quotas"`
 }
 
 type Env struct {

@@ -17,7 +17,7 @@ import (
 
 func main() {
 
-	app := bootstrap.App()
+	app := bootstrap.NewApplication()
 	env := app.Env
 
 	r := chi.NewRouter()

@@ -8,10 +8,12 @@ import (
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
 	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
+// ✅ Mock `OnboardingUsecase`
 type MockOnboardingUsecase struct {
 	mock.Mock
 }
@@ -23,61 +25,28 @@ func (m *MockOnboardingUsecase) Onboard(ctx context.Context, req domain.Onboardi
 	return args.Error(0)
 }
 
-// ✅ Updated MockUserContextReader to use GetUser instead of GetUsername, GetGroups, GetRoles
-type MockUserContextReader struct {
-	mock.Mock
-}
-
-func (m *MockUserContextReader) GetUser(ctx context.Context) (*domain.User, bool) {
-	args := m.Called(ctx)
-	user, _ := args.Get(0).(*domain.User)
-	return user, args.Bool(1)
-}
-
-func (m *MockUserContextReader) GetUsername(ctx context.Context) (string, bool) {
-	user, ok := m.GetUser(ctx)
-	if !ok {
-		return "", false
-	}
-	return user.Username, true
-}
-
-func (m *MockUserContextReader) GetGroups(ctx context.Context) ([]string, bool) {
-	user, ok := m.GetUser(ctx)
-	if !ok {
-		return nil, false
-	}
-	return user.Groups, true
-}
-
-func (m *MockUserContextReader) GetRoles(ctx context.Context) ([]string, bool) {
-	user, ok := m.GetUser(ctx)
-	if !ok {
-		return nil, false
-	}
-	return user.Roles, true
-}
-
+// ✅ Test Setup Function
 func setupController(
 	mockUsecase *MockOnboardingUsecase,
-	userCtx usercontext.UserContextReader,
+	mockUserCtx interfaces.UserContextReader,
 ) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: mockUsecase,
-		UserContextReader: userCtx,
+		UserContextReader: mockUserCtx,
 	}
 }
 
+// ✅ Test Cases
+
 func TestOnboardingController_Onboard_Success_NoGroup(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx := new(MockUserContextReader)
-
-	mockUsecase.On("Onboard", mock.Anything, mock.Anything).Return(nil)
-	mockUserCtx.On("GetUser", mock.Anything).Return(&domain.User{
+	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
 		Username: "test-user",
 		Groups:   []string{"group1", "group2"},
 		Roles:    []string{"role1"},
-	}, true)
+	})
+
+	mockUsecase.On("Onboard", mock.Anything, mock.Anything).Return(nil)
 
 	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Set: false}}
@@ -91,8 +60,7 @@ func TestOnboardingController_Onboard_Success_NoGroup(t *testing.T) {
 
 func TestOnboardingController_Onboard_GetUserFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx := new(MockUserContextReader)
-	mockUserCtx.On("GetUser", mock.Anything).Return(nil, false) // ❌ GetUser fails
+	mockUserCtx, _ := usercontext.NewMockUserContext(nil) // ❌ GetUser fails
 
 	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}
@@ -106,12 +74,11 @@ func TestOnboardingController_Onboard_GetUserFails(t *testing.T) {
 
 func TestOnboardingController_Onboard_GroupValidationFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx := new(MockUserContextReader)
-	mockUserCtx.On("GetUser", mock.Anything).Return(&domain.User{
+	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
 		Username: "test-user",
-		Groups:   []string{"other-group"},
+		Groups:   []string{"other-group"}, // ❌ Does not match "test-group"
 		Roles:    []string{"role1"},
-	}, true)
+	})
 
 	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}
@@ -125,14 +92,14 @@ func TestOnboardingController_Onboard_GroupValidationFails(t *testing.T) {
 
 func TestOnboardingController_Onboard_OnboardingFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx := new(MockUserContextReader)
-	mockUsecase.On("Onboard", mock.Anything, mock.Anything).
-		Return(errors.New("onboarding service error"))
-	mockUserCtx.On("GetUser", mock.Anything).Return(&domain.User{
+	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
 		Username: "test-user",
 		Groups:   []string{"test-group"},
 		Roles:    []string{"role1"},
-	}, true)
+	})
+
+	mockUsecase.On("Onboard", mock.Anything, mock.Anything).
+		Return(errors.New("onboarding service error"))
 
 	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}

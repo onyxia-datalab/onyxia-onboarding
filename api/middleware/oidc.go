@@ -9,7 +9,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
-	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
 type TokenVerifier interface {
@@ -32,11 +32,11 @@ type oidcAuth struct {
 	RolesClaim        string
 	Verifier          TokenVerifier
 	Audience          string
-	userContextWriter usercontext.UserContextWriter
+	userContextWriter interfaces.UserContextWriter
 }
 
 type noAuth struct {
-	userContextWriter usercontext.UserContextWriter
+	userContextWriter interfaces.UserContextWriter
 }
 
 var (
@@ -48,7 +48,7 @@ func OidcMiddleware(
 	ctx context.Context,
 	authenticationMode string,
 	config OIDCConfig,
-	userContextWriter usercontext.UserContextWriter,
+	userContextWriter interfaces.UserContextWriter,
 ) (api.SecurityHandler, error) {
 
 	if authenticationMode == "none" {
@@ -135,9 +135,17 @@ func (a *oidcAuth) HandleOidc(
 		slog.Any("roles", roles),
 	)
 
+	filteredClaims := make(map[string]any, len(claims))
+	for k, v := range claims {
+		// Exclude username, groups, and roles to avoid duplication
+		if k != a.UsernameClaim && k != a.GroupsClaim && k != a.RolesClaim {
+			filteredClaims[k] = v
+		}
+	}
+
 	ctx = a.userContextWriter.WithUser(
 		ctx,
-		&domain.User{Username: username, Groups: groups, Roles: roles},
+		&domain.User{Username: username, Groups: groups, Roles: roles, Attributes: filteredClaims},
 	)
 
 	return ctx, nil
@@ -230,7 +238,12 @@ func (n *noAuth) HandleOidc(
 
 	ctx = n.userContextWriter.WithUser(
 		ctx,
-		&domain.User{Username: "anonymous", Groups: []string{}, Roles: []string{}},
+		&domain.User{
+			Username:   "anonymous",
+			Groups:     []string{},
+			Roles:      []string{},
+			Attributes: map[string]any{},
+		},
 	)
 
 	return ctx, nil

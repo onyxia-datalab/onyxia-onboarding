@@ -1,15 +1,51 @@
 {
-  "packages": {
-    ".": {
-      "changelog-path": "CHANGELOG.md",
-      "release-type": "go",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
-      "draft": false,
-      "prerelease": false,
-      "include-v-in-tag": true,
-      "initial-version": "0.1.0"
-    }
-  },
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+  "level": "info",
+  "ts": 1740127446.407776,
+  "caller": "middleware/oidc.go:117",
+  "msg": "claim",
+  "claims": {
+    "acr": "1",
+    "allowed-origins": ["http://localhost*"],
+    "aud": ["onyxia-onboarding", "account"],
+    "azp": "onyxia-onboarding",
+    "email": "test@onyxia.local",
+    "email_verified": true,
+    "exp": 1740127722,
+    "family_name": "test-user",
+    "given_name": "test-user",
+    "groups": [
+      "default-roles-onyxia",
+      "offline_access",
+      "uma_authorization",
+      "role-admin"
+    ],
+    "iat": 1740127422,
+    "iss": "http://localhost:8081/realms/onyxia",
+    "jti": "42d41fab-2351-42c9-88e4-54984ab56e32",
+    "name": "test-user test-user",
+    "preferred_username": "test-user",
+    "realm_access": {
+      "roles": [
+        "default-roles-onyxia",
+        "offline_access",
+        "uma_authorization",
+        "role-admin"
+      ]
+    },
+    "resource_access": {
+      "account": {
+        "roles": ["manage-account", "manage-account-links", "view-profile"]
+      }
+    },
+    "roles": [
+      "default-roles-onyxia",
+      "offline_access",
+      "uma_authorization",
+      "role-admin"
+    ],
+    "scope": "profile email",
+    "sid": "46adef4a-0099-489d-b412-966934f1944f",
+    "sub": "3d6f3c46-292f-4d7e-880f-ea71e8532003",
+    "typ": "Bearer"
+  }
 }

@@ -8,17 +8,17 @@ import (
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
-	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
 type OnboardingController struct {
 	OnboardingUsecase domain.OnboardingUsecase
-	UserContextReader usercontext.UserContextReader
+	UserContextReader interfaces.UserContextReader
 }
 
 func NewOnboardingController(
 	onboardingUsecase domain.OnboardingUsecase,
-	userContextReader usercontext.UserContextReader,
+	userContextReader interfaces.UserContextReader,
 ) *OnboardingController {
 	return &OnboardingController{
 		OnboardingUsecase: onboardingUsecase,

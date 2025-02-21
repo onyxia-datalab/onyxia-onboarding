@@ -116,9 +116,10 @@ func TestNoAuth(t *testing.T) {
 
 	// ✅ Expect WithUser to be called with "anonymous" user, empty groups, and roles
 	expectedUser := &domain.User{
-		Username: "anonymous",
-		Groups:   []string{},
-		Roles:    []string{},
+		Username:   "anonymous",
+		Groups:     []string{},
+		Roles:      []string{},
+		Attributes: map[string]any{},
 	}
 	mockWriter.On("WithUser", mock.Anything, expectedUser).Return(context.Background())
 

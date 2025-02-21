@@ -4,12 +4,12 @@ import (
 	"context"
 	"log/slog"
 
-	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
 type userContextHandler struct {
 	handler       slog.Handler
-	userCtxReader usercontext.UserContextReader
+	userCtxReader interfaces.UserContextReader
 }
 
 func (h *userContextHandler) Enabled(ctx context.Context, level slog.Level) bool {
@@ -42,7 +42,7 @@ func (h *userContextHandler) WithGroup(name string) slog.Handler {
 
 func NewUserContextLogger(
 	baseHandler slog.Handler,
-	userCtx usercontext.UserContextReader,
+	userCtx interfaces.UserContextReader,
 ) slog.Handler {
 	return &userContextHandler{handler: baseHandler, userCtxReader: userCtx}
 }
