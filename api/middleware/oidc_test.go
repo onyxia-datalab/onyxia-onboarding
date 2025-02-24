@@ -111,6 +111,7 @@ func TestExtractStringArray(t *testing.T) {
 		claimName string
 		expected  []string
 	}{
+		{"Empty claim name", map[string]any{"groups": []any{"group1"}}, "", nil},
 		{
 			"Valid array",
 			map[string]any{"groups": []any{"group1", "group2"}},
