@@ -5,19 +5,11 @@ import (
 	"testing"
 
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
+	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
+
 	"github.com/onyxia-datalab/onyxia-onboarding/domain"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
-
-type MockUserContextWriter struct {
-	mock.Mock
-}
-
-func (m *MockUserContextWriter) WithUser(ctx context.Context, u *domain.User) context.Context {
-	args := m.Called(ctx, u)
-	return args.Get(0).(context.Context)
-}
 
 func TestValidateAudience(t *testing.T) {
 	auth := &oidcAuth{Audience: "onyxia-onboarding"}
@@ -112,7 +104,7 @@ func TestExtractStringArray(t *testing.T) {
 }
 
 func TestNoAuth(t *testing.T) {
-	mockWriter := new(MockUserContextWriter)
+	userCtxReader, userCtxWriter := usercontext.NewUserContext()
 
 	// ✅ Expect WithUser to be called with "anonymous" user, empty groups, and roles
 	expectedUser := &domain.User{
@@ -121,15 +113,16 @@ func TestNoAuth(t *testing.T) {
 		Roles:      []string{},
 		Attributes: map[string]any{},
 	}
-	mockWriter.On("WithUser", mock.Anything, expectedUser).Return(context.Background())
 
-	noAuthHandler := &noAuth{userContextWriter: mockWriter}
+	noAuthHandler := &noAuth{userContextWriter: userCtxWriter}
 	req := api.Oidc{Token: "ignored-token"}
 	ctx := context.Background()
 
-	_, err := noAuthHandler.HandleOidc(ctx, "test-operation", req)
+	ctx, err := noAuthHandler.HandleOidc(ctx, "test-operation", req)
 	assert.NoError(t, err, "Expected no error in NoAuth mode")
 
-	// ✅ Only check `WithUser`, since groups and roles are included inside it
-	mockWriter.AssertCalled(t, "WithUser", mock.Anything, expectedUser)
+	user, exists := userCtxReader.GetUser(ctx)
+	assert.True(t, exists, "Expected user to exist in context")
+	assert.Equal(t, expectedUser, user, "Expected user to be set in context")
+
 }
