@@ -4,24 +4,20 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	usercontext "github.com/onyxia-datalab/onyxia-onboarding/infrastructure/context"
 	"github.com/onyxia-datalab/onyxia-onboarding/infrastructure/kubernetes"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
 type Application struct {
 	Env               *Env
 	K8sClient         *kubernetes.KubernetesClient
-	UserContextReader usercontext.UserContextReader
-	UserContextWriter usercontext.UserContextWriter
+	UserContextReader interfaces.UserContextReader
+	UserContextWriter interfaces.UserContextWriter
 }
 
-func App() Application {
-	app := &Application{}
-
-	// Initialize User Context
+func NewApplication() Application {
 	userReader, userWriter := usercontext.NewUserContext()
-	app.UserContextReader = userReader
-	app.UserContextWriter = userWriter
 
 	InitLogger(userReader)
 
@@ -31,17 +27,20 @@ func App() Application {
 		os.Exit(1)
 	}
 
-	app.Env = env
-
 	k8sClient, err := kubernetes.NewKubernetesClient()
-
 	if err != nil {
 		slog.Error("Failed to initialize Kubernetes client", slog.Any("error", err))
 		os.Exit(1)
 	}
-	app.K8sClient = k8sClient
 
-	slog.Info("Application initialized")
+	app := &Application{
+		Env:               env,
+		K8sClient:         k8sClient,
+		UserContextReader: userReader,
+		UserContextWriter: userWriter,
+	}
+
+	slog.Info("Application initialized successfully")
 
 	return *app
 }

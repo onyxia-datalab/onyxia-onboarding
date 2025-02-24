@@ -8,7 +8,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	api "github.com/onyxia-datalab/onyxia-onboarding/api/oas"
-	"github.com/onyxia-datalab/onyxia-onboarding/domain/usercontext"
+	"github.com/onyxia-datalab/onyxia-onboarding/domain"
+	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 )
 
 type TokenVerifier interface {
@@ -31,11 +32,11 @@ type oidcAuth struct {
 	RolesClaim        string
 	Verifier          TokenVerifier
 	Audience          string
-	userContextWriter usercontext.UserContextWriter
+	userContextWriter interfaces.UserContextWriter
 }
 
 type noAuth struct {
-	userContextWriter usercontext.UserContextWriter
+	userContextWriter interfaces.UserContextWriter
 }
 
 var (
@@ -47,7 +48,7 @@ func OidcMiddleware(
 	ctx context.Context,
 	authenticationMode string,
 	config OIDCConfig,
-	userContextWriter usercontext.UserContextWriter,
+	userContextWriter interfaces.UserContextWriter,
 ) (api.SecurityHandler, error) {
 
 	if authenticationMode == "none" {
@@ -119,7 +120,7 @@ func (a *oidcAuth) HandleOidc(
 	}
 
 	// ✅ Extract user
-	userStr, err := a.extractClaim(claims, a.UsernameClaim)
+	username, err := a.extractClaim(claims, a.UsernameClaim)
 	if err != nil {
 		return ctx, err
 	}
@@ -128,15 +129,24 @@ func (a *oidcAuth) HandleOidc(
 	roles := a.extractStringArray(claims, a.RolesClaim)
 
 	slog.Info("✅ OIDC Authentication Successful",
-		slog.String("user", userStr),
+		slog.String("user", username),
 		slog.String("operation", operation),
 		slog.Any("groups", groups),
 		slog.Any("roles", roles),
 	)
 
-	ctx = a.userContextWriter.WithUser(ctx, userStr)
-	ctx = a.userContextWriter.WithGroups(ctx, groups)
-	ctx = a.userContextWriter.WithRoles(ctx, roles)
+	filteredClaims := make(map[string]any, len(claims))
+	for k, v := range claims {
+		// Exclude username, groups, and roles to avoid duplication
+		if k != a.UsernameClaim && k != a.GroupsClaim && k != a.RolesClaim {
+			filteredClaims[k] = v
+		}
+	}
+
+	ctx = a.userContextWriter.WithUser(
+		ctx,
+		&domain.User{Username: username, Groups: groups, Roles: roles, Attributes: filteredClaims},
+	)
 
 	return ctx, nil
 }
@@ -226,9 +236,15 @@ func (n *noAuth) HandleOidc(
 	req api.Oidc,
 ) (context.Context, error) {
 
-	ctx = n.userContextWriter.WithUser(ctx, "anonymous")
-	ctx = n.userContextWriter.WithGroups(ctx, []string{})
-	ctx = n.userContextWriter.WithRoles(ctx, []string{})
+	ctx = n.userContextWriter.WithUser(
+		ctx,
+		&domain.User{
+			Username:   "anonymous",
+			Groups:     []string{},
+			Roles:      []string{},
+			Attributes: map[string]any{},
+		},
+	)
 
 	return ctx, nil
 }
