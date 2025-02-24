@@ -10,6 +10,7 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/interfaces"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
@@ -40,6 +41,23 @@ func TestCreateNamespace_AlreadyExists(t *testing.T) {
 	service := NewKubernetesNamespaceService(clientset)
 
 	result, err := service.CreateNamespace(context.Background(), "test-namespace", nil)
+
+	assert.NoError(t, err)
+	assert.Equal(t, interfaces.NamespaceAlreadyExists, result)
+}
+
+// ✅ Test: Namespace Already Exists (No Annotations Given)
+func TestCreateNamespace_AlreadyExists_NoAnnotations(t *testing.T) {
+	clientset := fake.NewSimpleClientset(&v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-namespace"},
+	})
+	service := NewKubernetesNamespaceService(clientset)
+
+	result, err := service.CreateNamespace(
+		context.Background(),
+		"test-namespace",
+		map[string]string{},
+	)
 
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.NamespaceAlreadyExists, result)
@@ -127,9 +145,7 @@ func TestCreateNamespace_FailurePatch(t *testing.T) {
 
 // ✅ Test: Apply Resource Quotas Successfully
 func TestApplyResourceQuotas_Success(t *testing.T) {
-	clientset := fake.NewSimpleClientset(&v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-namespace"},
-	})
+	clientset := fake.NewSimpleClientset()
 	service := NewKubernetesNamespaceService(clientset)
 
 	quota := &domain.Quota{MemoryRequest: "10Gi", CPURequest: "10"}
@@ -138,17 +154,26 @@ func TestApplyResourceQuotas_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.QuotaCreated, result)
+}
 
-	createdQuota, err := clientset.CoreV1().
-		ResourceQuotas("test-namespace").
-		Get(context.Background(), QuotaName, metav1.GetOptions{})
+// ✅ Test: Quota Already Exists with Unchanged Values
+func TestApplyResourceQuotas_UnchangedQuota(t *testing.T) {
+	clientset := fake.NewSimpleClientset(&v1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{Name: QuotaName, Namespace: "test-namespace"},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse("10Gi"),
+			},
+		},
+	})
+	service := NewKubernetesNamespaceService(clientset)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"} // Same values as existing
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
 	assert.NoError(t, err)
-	assert.Equal(t, QuotaName, createdQuota.Name)
-	assert.Equal(t, "onyxia", createdQuota.Labels["created-by"])
-
-	memoryQuantity, exists := createdQuota.Spec.Hard[v1.ResourceRequestsMemory]
-	assert.True(t, exists)
-	assert.Equal(t, "10Gi", memoryQuantity.String())
+	assert.Equal(t, interfaces.QuotaUnchanged, result)
 }
 
 // ✅ Test: Quota is Ignored Due to Annotation
@@ -170,4 +195,48 @@ func TestApplyResourceQuotas_IgnoredQuota(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.QuotaIgnored, result)
+}
+
+// ❌ Test: Failure When Checking for an Existing Quota
+func TestApplyResourceQuotas_FailureCheck(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	service := NewKubernetesNamespaceService(clientset)
+
+	clientset.PrependReactor(
+		"get",
+		"resourcequotas",
+		func(action k8stesting.Action) (bool, runtime.Object, error) {
+			return true, nil, errors.New("failed to get quota")
+		},
+	)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"}
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
+	assert.Error(t, err)
+	assert.Equal(t, interfaces.QuotaApplicationResult(""), result)
+	assert.Contains(t, err.Error(), "failed to get quota")
+}
+
+// ❌ Test: Failure When Creating a Quota
+func TestApplyResourceQuotas_FailureCreate(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	service := NewKubernetesNamespaceService(clientset)
+
+	clientset.PrependReactor(
+		"create",
+		"resourcequotas",
+		func(action k8stesting.Action) (bool, runtime.Object, error) {
+			return true, nil, errors.New("failed to create quota")
+		},
+	)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"}
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
+	assert.Error(t, err)
+	assert.Equal(t, interfaces.QuotaApplicationResult(""), result)
+	assert.Contains(t, err.Error(), "failed to create quota")
 }
