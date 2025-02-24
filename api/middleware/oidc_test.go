@@ -12,32 +12,59 @@ import (
 )
 
 func TestValidateAudience(t *testing.T) {
-	auth := &oidcAuth{Audience: "onyxia-onboarding"}
-
 	tests := []struct {
 		name      string
+		auth      *oidcAuth // The OIDC Auth config
 		claims    map[string]any
 		expectErr bool
 	}{
-		{"Valid string audience", map[string]any{"aud": "onyxia-onboarding"}, false},
+		{
+			"Empty config audience",
+			&oidcAuth{Audience: ""},
+			map[string]any{"aud": "onyxia-onboarding"},
+			false,
+		},
+		{
+			"Valid string audience",
+			&oidcAuth{Audience: "onyxia-onboarding"},
+			map[string]any{"aud": "onyxia-onboarding"},
+			false,
+		},
 		{
 			"Valid array audience",
+			&oidcAuth{Audience: "onyxia-onboarding"},
 			map[string]any{"aud": []string{"service1", "onyxia-onboarding"}},
 			false,
 		},
-		{"Missing audience", map[string]any{}, true},
-		{"Invalid string audience", map[string]any{"aud": "wrong-audience"}, true},
+		{
+			"Missing audience in token",
+			&oidcAuth{Audience: "onyxia-onboarding"},
+			map[string]any{},
+			true,
+		},
+		{
+			"Invalid string audience",
+			&oidcAuth{Audience: "onyxia-onboarding"},
+			map[string]any{"aud": "wrong-audience"},
+			true,
+		},
 		{
 			"Invalid array audience",
+			&oidcAuth{Audience: "onyxia-onboarding"},
 			map[string]any{"aud": []string{"service1", "other-service"}},
 			true,
 		},
-		{"Unexpected format", map[string]any{"aud": 123}, true},
+		{
+			"Unexpected format",
+			&oidcAuth{Audience: "onyxia-onboarding"},
+			map[string]any{"aud": 123},
+			true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := auth.validateAudience(tt.claims)
+			err := tt.auth.validateAudience(tt.claims)
 			if tt.expectErr {
 				assert.Error(t, err, "Expected error but got nil")
 			} else {
@@ -46,7 +73,6 @@ func TestValidateAudience(t *testing.T) {
 		})
 	}
 }
-
 func TestExtractClaim(t *testing.T) {
 	auth := &oidcAuth{}
 
@@ -103,26 +129,49 @@ func TestExtractStringArray(t *testing.T) {
 	}
 }
 
-func TestNoAuth(t *testing.T) {
+func TestOidcMiddleware_NoAuthMode(t *testing.T) {
+	// ✅ Use real user context implementation
 	userCtxReader, userCtxWriter := usercontext.NewUserContext()
 
-	// ✅ Expect WithUser to be called with "anonymous" user, empty groups, and roles
+	// ✅ Call OidcMiddleware with "none" mode
+	securityHandler, err := OidcMiddleware(
+		context.Background(),
+		"none",
+		OIDCConfig{},
+		userCtxWriter,
+	)
+
+	// ✅ Assert that no error occurred
+	assert.NoError(t, err, "Expected no error when using No-Auth mode")
+
+	// ✅ Assert that the returned security handler is a *noAuth instance
+	assert.IsType(t, &noAuth{}, securityHandler, "Expected securityHandler to be of type *noAuth")
+
+	// ✅ Cast to *noAuth and validate that it has the correct userContextWriter
+	noAuthHandler, ok := securityHandler.(*noAuth)
+	assert.True(t, ok, "Expected securityHandler to be a *noAuth instance")
+	assert.Equal(
+		t,
+		userCtxWriter,
+		noAuthHandler.userContextWriter,
+		"Expected userContextWriter to be the same as passed",
+	)
+
+	// ✅ Simulate an OIDC request and verify NoAuth behavior
+	req := api.Oidc{Token: "ignored-token"}
+	ctx := context.Background()
+	ctx, err = noAuthHandler.HandleOidc(ctx, "test-operation", req)
+
+	assert.NoError(t, err, "Expected no error when handling OIDC request in No-Auth mode")
+
+	// ✅ Assert that the anonymous user was set
 	expectedUser := &domain.User{
 		Username:   "anonymous",
 		Groups:     []string{},
 		Roles:      []string{},
 		Attributes: map[string]any{},
 	}
-
-	noAuthHandler := &noAuth{userContextWriter: userCtxWriter}
-	req := api.Oidc{Token: "ignored-token"}
-	ctx := context.Background()
-
-	ctx, err := noAuthHandler.HandleOidc(ctx, "test-operation", req)
-	assert.NoError(t, err, "Expected no error in NoAuth mode")
-
 	user, exists := userCtxReader.GetUser(ctx)
 	assert.True(t, exists, "Expected user to exist in context")
 	assert.Equal(t, expectedUser, user, "Expected user to be set in context")
-
 }
