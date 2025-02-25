@@ -12,6 +12,8 @@ name: release
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
     steps:
       - uses: actions/create-github-app-token@v1
         id: app-token
@@ -20,12 +22,14 @@ jobs:
           private-key: ${{ secrets.ONYXIA_BOT_PRIVATE_KEY }}
 
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           token: ${{ steps.app-token.outputs.token }}
   docker:
     needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
