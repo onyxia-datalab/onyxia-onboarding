@@ -32,8 +32,13 @@ jobs:
       - name: Format code
         run: make fmt && git diff --exit-code
 
+      # We use golangci-lint-action instead of "make lint" because it runs faster in CI.
+      # "make lint" requires installing golangci-lint manually, which is slow and unnecessary in this context.
       - name: Run linter
-        run: make lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
 
       - name: Run tests with coverage
         run: make test ARGS="-v -cover -covermode=set -coverprofile=cover.out"
