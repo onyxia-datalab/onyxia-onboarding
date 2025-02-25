@@ -17,33 +17,36 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
-      - name: Format code
-        run: gofmt -s -w . && git diff --exit-code
-
-      - name: Tidy dependencies
-        run: go mod tidy && git diff --exit-code
-
-      - name: Download dependencies
-        run: go mod download
+      - name: Install dependencies and verify tidy
+        run: make install && git diff --exit-code
 
       - name: Verify dependencies
-        run: go mod verify
+        run: make verify
 
-      - name: Run tests
-        run: go test -v -cover -covermode=set -coverprofile=cover.out ./...
+      - name: Format code
+        run: make fmt && git diff --exit-code
+
+      # We use golangci-lint-action instead of "make lint" because it runs faster in CI.
+      # "make lint" requires installing golangci-lint manually, which is slow and unnecessary in this context.
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+
+      - name: Run tests with coverage
+        run: make test ARGS="-v -cover -covermode=set -coverprofile=cover.out"
 
       - name: Upload coverage to SonarCloud
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # No need to run SonarCloud analysis if dependabot update or token not defined
         if: env.SONAR_TOKEN != '' && (github.actor != 'renovate[bot]')
