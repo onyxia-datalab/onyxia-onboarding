@@ -1,6 +1,8 @@
 PROJECTNAME := $(shell basename "$(PWD)")
 VERSION := $(shell git describe --tags --always 2>/dev/null || echo "0.0.0")
 BUILD := $(shell git rev-parse --short HEAD)
+DOCKER_REGISTRY := inseefrlab
+DOCKER_IMAGE := $(DOCKER_REGISTRY)/$(PROJECTNAME)
 
 # Go-related variables
 GOBASE := $(shell pwd)
@@ -18,6 +20,11 @@ install:
 	@echo "📦 Installing dependencies..."
 	@go mod tidy
 
+## verify: Verify module dependencies
+verify:
+	@echo "🔍 Verifying dependencies..."
+	@go mod verify
+
 ## generate: Run code generation tools (openapi-generator)
 generate:
 	@echo "⚡ Running go generate..."
@@ -34,10 +41,10 @@ lint:
 	@which golangci-lint >/dev/null 2>&1 || { echo "📥 Installing golangci-lint..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; }
 	@golangci-lint run ./...
 
-## test: Run Uniot tests
+## test: Run Unit tests
 test: 
 	@echo "  >  Executing unit tests"
-	@go test ./...
+	@go test $(ARGS) ./...
 
 ## run: Run the application
 run:
@@ -54,10 +61,17 @@ clean:
 	@rm -f $(GOBIN)/$(PROJECTNAME)
 	@go clean
 
-## docker-build: Build a Docker image
+## docker-build: Build the Docker image
 docker-build:
 	@echo "🐳 Building Docker image..."
-	docker build -t $(PROJECTNAME):latest .
+	docker build -t $(DOCKER_IMAGE):$(VERSION) .
+
+## docker-push: Push the Docker image to Docker Hub
+docker-push: docker-build
+	@echo "📤 Pushing Docker image..."
+	docker tag $(DOCKER_IMAGE):$(VERSION) $(DOCKER_IMAGE):latest
+	docker push $(DOCKER_IMAGE):$(VERSION)
+	docker push $(DOCKER_IMAGE):latest
 
 ## docker-run: Run the Docker container
 docker-run:
