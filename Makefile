@@ -3,6 +3,8 @@ VERSION := $(shell git describe --tags --always 2>/dev/null || echo "v0.0.0")
 BUILD := $(shell git rev-parse --short HEAD)
 DOCKER_REGISTRY := inseefrlab
 DOCKER_IMAGE := $(DOCKER_REGISTRY)/$(PROJECTNAME)
+DOCKER_VERSION := $(shell echo $(VERSION) | sed 's/^v//')
+
 
 # Go-related variables
 GOBASE := $(shell pwd)
@@ -64,13 +66,13 @@ clean:
 ## docker-build: Build the Docker image
 docker-build:
 	@echo "🐳 Building Docker image..."
-	docker build -t $(DOCKER_IMAGE):$(VERSION) .
+	docker build -t $(DOCKER_IMAGE):$(DOCKER_VERSION) .
 
 ## docker-push: Push the Docker image to Docker Hub
 docker-push: docker-build
 	@echo "📤 Pushing Docker image..."
-	docker tag $(DOCKER_IMAGE):$(VERSION) $(DOCKER_IMAGE):latest
-	docker push $(DOCKER_IMAGE):$(VERSION)
+	docker tag $(DOCKER_IMAGE):$(DOCKER_VERSION) $(DOCKER_IMAGE):latest
+	docker push $(DOCKER_IMAGE):$(DOCKER_VERSION)
 	docker push $(DOCKER_IMAGE):latest
 
 ## docker-run: Run the Docker container
