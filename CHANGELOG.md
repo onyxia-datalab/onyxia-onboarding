@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.0...v0.1.1) (2025-02-25)
+
+
+### Bug Fixes
+
+* **ci:** make tags available in ci so docker tags are correct ([#38](https://github.com/onyxia-datalab/onyxia-onboarding/issues/38)) ([dfaa2dc](https://github.com/onyxia-datalab/onyxia-onboarding/commit/dfaa2dc9cbd85668da5944ba506dcf50588e0949))
+
 ## 0.1.0 (2025-02-25)
 
 
