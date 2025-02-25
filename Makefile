@@ -5,7 +5,7 @@ BUILD := $(shell git rev-parse --short HEAD)
 # Go-related variables
 GOBASE := $(shell pwd)
 GOBIN := $(GOBASE)/bin
-GOFILES := $(wildcard *.go)
+GOFILES := cmd/main.go
 
 # Linker flags for versioning
 LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
