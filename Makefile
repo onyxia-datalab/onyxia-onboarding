@@ -1,5 +1,5 @@
 PROJECTNAME := $(shell basename "$(PWD)")
-VERSION := $(shell git describe --tags --always 2>/dev/null || echo "0.0.0")
+VERSION := $(shell git describe --tags --always 2>/dev/null || echo "v0.0.0")
 BUILD := $(shell git rev-parse --short HEAD)
 DOCKER_REGISTRY := inseefrlab
 DOCKER_IMAGE := $(DOCKER_REGISTRY)/$(PROJECTNAME)
