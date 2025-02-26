@@ -78,8 +78,6 @@ This will:
 - **Build the Docker image** using the appropriate platform for your system.
 - **Run the container** and expose it on port **8080**.
 
----
-
 ### 🖀 Multi-Architecture Build
 
 By default, the Docker image is built for **the local system architecture** that is running the command. If you need to support **both AMD64 and ARM64** (e.g., Apple M1/M2 chips), enable multi-architecture builds by setting the `MULTIARCH` flag:
@@ -87,8 +85,6 @@ By default, the Docker image is built for **the local system architecture** that
 ```sh
 MULTIARCH=1 make docker-build
 ```
-
----
 
 ### 🚀 Pushing to Docker Hub
 
@@ -170,17 +166,30 @@ The configuration is loaded using **Viper** and can be provided via:
 
 ##### **Quotas**
 
-| Variable                          | Description                    | Default |
-| --------------------------------- | ------------------------------ | ------- |
-| `enabled`                         | Enable quotas                  | `false` |
-| `default.requests.memory`         | Default requested memory limit | `10Gi`  |
-| `default.requests.cpu`            | Default requested CPU limit    | `10`    |
-| `default.limits.memory`           | Default memory limit           | `10Gi`  |
-| `default.limits.cpu`              | Default CPU limit              | `10`    |
-| `default.requests.storage`        | Default storage request        | `100Gi` |
-| `default.count.pods`              | Default max pods count         | `50`    |
-| `default.requests.nvidia.com/gpu` | Default GPU requests           | `0`     |
-| `default.limits.nvidia.com/gpu`   | Default GPU limits             | `0`     |
+| Variable       | Description                                                                                                                                                                                      | Default |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `enabled`      | Enable quotas                                                                                                                                                                                    | `false` |
+| `default`      | Default quotas values [See](#quotas-values)                                                                                                                                                      |         |
+| `userEnabled`  | Enable user-specific quotas                                                                                                                                                                      | `false` |
+| `user`         | User quotas values [See](#quotas-values)                                                                                                                                                         |         |
+| `groupEnabled` | Enable group-specific quotas                                                                                                                                                                     | `false` |
+| `group`        | Group quotas values [See](#quotas-values)                                                                                                                                                        |         |
+| `roles`        | Map of quotas corresponding to user roles. In case the user has multiple of those roles, only the first one will be applied. If user has no role from this list then user quota will be applied. | `{}`    |
+
+##### **Quotas Values**
+
+| Variable                     | Description                       | Default |
+| ---------------------------- | --------------------------------- | ------- |
+| `requests.memory`            | Default requested memory limit    | `10Gi`  |
+| `requests.cpu`               | Default requested CPU limit       | `10`    |
+| `limits.memory`              | Default memory limit              | `10Gi`  |
+| `limits.cpu`                 | Default CPU limit                 | `10`    |
+| `requests.storage`           | Default storage request           | `100Gi` |
+| `count.pods`                 | Default max pods count            | `50`    |
+| `requests.ephemeral-storage` | Default ephemeral storage request | `10Gi`  |
+| `limits.ephemeral-storage`   | Default ephemeral storage limit   | `20Gi`  |
+| `requests.nvidia.com/gpu`    | Default GPU requests              | `0`     |
+| `limits.nvidia.com/gpu`      | Default GPU limits                | `0`     |
 
 This is a subset of the configuration options available. The full configuration structure can be found in `env.default.yaml`.
 
