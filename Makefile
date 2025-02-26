@@ -5,17 +5,20 @@ DOCKER_REGISTRY := inseefrlab
 DOCKER_IMAGE := $(DOCKER_REGISTRY)/$(PROJECTNAME)
 DOCKER_VERSION := $(shell echo $(VERSION) | sed 's/^v//')
 
-
 # Go-related variables
 GOBASE := $(shell pwd)
 GOBIN := $(GOBASE)/bin
 GOFILES := cmd/main.go
 
 # Linker flags for versioning
-LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
+LDFLAGS = -ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
 
-# Make is verbose by default, silence it
-MAKEFLAGS += --silent
+# Multi-architecture support (enabled only if MULTIARCH=1 is set)
+MULTIARCH ?= 0
+DOCKER_PLATFORMS := linux/amd64
+ifeq ($(MULTIARCH), 1)
+    DOCKER_PLATFORMS := linux/amd64,linux/arm64
+endif
 
 ## install: Install dependencies using Go modules
 install:
@@ -45,16 +48,17 @@ lint:
 
 ## test: Run Unit tests
 test: 
-	@echo "  >  Executing unit tests"
+	@echo "✅ Running unit tests..."
 	@go test $(ARGS) ./...
 
 ## run: Run the application
 run:
+	@echo "🚀 Running $(PROJECTNAME)..."
 	@go run cmd/main.go
 
 ## build: Compile the binary
 build:
-	@echo "🚀 Building binary..."
+	@echo "🔨 Building binary..."
 	@go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME) $(GOFILES)
 
 ## clean: Remove build artifacts
@@ -63,22 +67,30 @@ clean:
 	@rm -f $(GOBIN)/$(PROJECTNAME)
 	@go clean
 
-## docker-build: Build the Docker image
-docker-build:
-	@echo "🐳 Building Docker image..."
-	docker build -t $(DOCKER_IMAGE):$(DOCKER_VERSION) .
+## docker-setup-builder: Setup Docker Buildx if multi-arch is enabled
+docker-setup-builder:
+ifeq ($(MULTIARCH), 1)
+	@echo "🔧 Setting up Docker Buildx for multi-architecture builds..."
+	@docker buildx create --use --name multiarch-builder || true
+endif
+
+docker-build: docker-setup-builder
+	@echo "🐳 Building Docker image for platforms: $(DOCKER_PLATFORMS)..."
+	@docker buildx build --platform $(DOCKER_PLATFORMS) \
+		--tag $(DOCKER_IMAGE):$(DOCKER_VERSION) \
+		--tag $(DOCKER_IMAGE):latest \
+		$(if $(filter 1,$(MULTIARCH)),,--load) \
+		$(if $(PUSH),--push,) .
 
 ## docker-push: Push the Docker image to Docker Hub
-docker-push: docker-build
+docker-push:
 	@echo "📤 Pushing Docker image..."
-	docker tag $(DOCKER_IMAGE):$(DOCKER_VERSION) $(DOCKER_IMAGE):latest
-	docker push $(DOCKER_IMAGE):$(DOCKER_VERSION)
-	docker push $(DOCKER_IMAGE):latest
+	@$(MAKE) docker-build PUSH=1
 
 ## docker-run: Run the Docker container
 docker-run:
-	@echo "🐳 Running $(PROJECTNAME) in Docker..."
-	docker run --rm -p 8080:8080 $(PROJECTNAME):latest
+	@echo "🐳 Running $(DOCKER_IMAGE) in Docker..."
+	docker run --rm -p 8080:8080 $(DOCKER_IMAGE):latest
 
 .PHONY: help
 
