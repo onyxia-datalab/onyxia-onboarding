@@ -15,7 +15,27 @@ LDFLAGS = -ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
 
 # Multi-architecture support (enabled only if MULTIARCH=1 is set)
 MULTIARCH ?= 0
-DOCKER_PLATFORMS := linux/amd64
+
+# Detect architecture
+UNAME_M := $(shell uname -m)
+
+# Map architecture to Docker platform
+ifeq ($(UNAME_M), x86_64)
+    LOCAL_PLATFORM := linux/amd64
+else ifeq ($(UNAME_M), aarch64)
+    LOCAL_PLATFORM := linux/arm64
+else ifeq ($(UNAME_M), arm64)
+    LOCAL_PLATFORM := linux/arm64
+else
+    LOCAL_PLATFORM := linux/amd64  # Default fallback
+endif
+
+DOCKER_PLATFORMS := $(LOCAL_PLATFORM)
+
+ifeq ($(MULTIARCH), 1)
+    DOCKER_PLATFORMS := linux/amd64,linux/arm64
+endif
+
 ifeq ($(MULTIARCH), 1)
     DOCKER_PLATFORMS := linux/amd64,linux/arm64
 endif
