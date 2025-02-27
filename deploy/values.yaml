@@ -112,4 +112,5 @@ tolerations: []
 
 affinity: {}
 
+# Values pass to the container as environment variables
 env: {}
