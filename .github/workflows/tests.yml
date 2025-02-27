@@ -20,7 +20,11 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses:
+          actions/checkout@v4
+          # Disabling shallow clones is recommended for improving the relevancy of sonar reporting
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
