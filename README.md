@@ -98,7 +98,7 @@ DOCKER_REGISTRY=<Your registry> make docker-push
 
 This will:
 
-- **Build the image** for multiple architectures.
+- **Build the image**.
 - **Push** it to your Docker registry.
 
 ## 🛠️ Environnement Values
