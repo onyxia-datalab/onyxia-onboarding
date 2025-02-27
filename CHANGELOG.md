@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.2...v0.1.3) (2025-02-27)
+
+
+### Features
+
+* add qemu and buildx setup to reduce docker actions time ([#44](https://github.com/onyxia-datalab/onyxia-onboarding/issues/44)) ([e56c3b6](https://github.com/onyxia-datalab/onyxia-onboarding/commit/e56c3b63e32193d9256b329396a731c3eb94cc4d))
+
 ## [0.1.2](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.1...v0.1.2) (2025-02-27)
 
 
