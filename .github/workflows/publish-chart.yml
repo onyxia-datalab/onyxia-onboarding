@@ -1,11 +1,11 @@
-name: Deploy Helm Chart
+name: Publish Helm Chart
 
 on:
   push:
     branches:
       - main
     paths:
-      - "deployments/**" # Trigger only when Helm chart changes
+      - "deploy/**" # Trigger only when Helm chart changes
 
 permissions:
   contents: read
