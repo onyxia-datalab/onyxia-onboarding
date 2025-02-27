@@ -36,4 +36,4 @@ jobs:
       - name: Push Helm chart to Docker Hub
         run: |
           CHART_NAME=$(ls deploy/release | grep .tgz | head -n 1)
-          helm push deploy/release/$CHART_NAME oci://docker.io/${{ secrets.DOCKERHUB_USERNAME }}
+          helm push deploy/release/$CHART_NAME oci://docker.io/inseefrlab
