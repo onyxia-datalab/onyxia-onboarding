@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.3...v0.1.4) (2025-02-27)
+
+
+### Features
+
+* trigger release ([17c9b7e](https://github.com/onyxia-datalab/onyxia-onboarding/commit/17c9b7e6dde1a184bcf62fc86be3668f6e01ccf4))
+
 ## [0.1.3](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.2...v0.1.3) (2025-02-27)
 
 
