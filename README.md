@@ -20,20 +20,21 @@ Visit [onyxia.sh](https://onyxia.sh) to learn more about the Onyxia ecosystem.
 ## 🚀 Features
 
 - **Automated namespace creation**: Ensures users have their own dedicated Kubernetes namespace.
-- **Role-based access control (RBAC)**: Assigns users and groups to appropriate namespaces.
 - **Resource quotas**: Enforces limits on CPU, GPU, memory, and storage usage.
 - **Namespace annotations**: Allows additional metadata if enabled via environment variables.
 - **REST API**: Simple and efficient API for managing onboarding operations.
 
 ## 🏗️ Installation & Setup
 
-### Prerequisites
+This module is designed to be used within the Onyxia ecosystem. Detailed installation guides are coming soon. In the meantime, you can explore the local development setup below.
+
+### Local Development
+
+Prerequisites
 
 - [Go](https://golang.org/doc/install)
 - [Docker](https://docs.docker.com/get-docker/) (optional, for containerized deployment)
 - Kubernetes cluster with appropriate RBAC setup
-
-### Local Development
 
 1. **Clone the repository**:
 
