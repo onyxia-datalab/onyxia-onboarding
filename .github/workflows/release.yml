@@ -2,7 +2,9 @@ on:
   push:
     branches:
       - main
-
+    paths-ignore:
+      - "deploy/**"
+      
 permissions:
   contents: write
   pull-requests: write
