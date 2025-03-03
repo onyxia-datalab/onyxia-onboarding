@@ -240,3 +240,175 @@ func TestApplyResourceQuotas_FailureCreate(t *testing.T) {
 	assert.Equal(t, interfaces.QuotaApplicationResult(""), result)
 	assert.Contains(t, err.Error(), "failed to create quota")
 }
+
+func TestApplyResourceQuotas_QuotaUpdated(t *testing.T) {
+	clientset := fake.NewSimpleClientset(&v1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{Name: QuotaName, Namespace: "test-namespace"},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse(
+					"5Gi",
+				),
+			},
+		},
+	})
+	service := NewKubernetesNamespaceService(clientset)
+
+	clientset.PrependReactor(
+		"update",
+		"resourcequotas",
+		func(action k8stesting.Action) (bool, runtime.Object, error) {
+			return true, &v1.ResourceQuota{
+				ObjectMeta: metav1.ObjectMeta{Name: QuotaName, Namespace: "test-namespace"},
+				Spec: v1.ResourceQuotaSpec{
+					Hard: map[v1.ResourceName]resource.Quantity{
+						v1.ResourceRequestsMemory: resource.MustParse("10Gi"),
+					},
+				},
+			}, nil
+		},
+	)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"} // 👈 Updated quota
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
+	assert.NoError(t, err)
+	assert.Equal(t, interfaces.QuotaUpdated, result)
+}
+
+func TestApplyResourceQuotas_UnexpectedGetError(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	service := NewKubernetesNamespaceService(clientset)
+
+	clientset.PrependReactor(
+		"get",
+		"resourcequotas",
+		func(action k8stesting.Action) (bool, runtime.Object, error) {
+			return true, nil, errors.New("unexpected API error") // ✅ Force an unexpected error
+		},
+	)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"}
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
+	assert.Error(t, err)
+	assert.Equal(t, interfaces.QuotaApplicationResult(""), result)
+	assert.Contains(t, err.Error(), "unexpected error checking for existing quota")
+}
+func TestApplyResourceQuotas_FailureUpdate(t *testing.T) {
+	clientset := fake.NewSimpleClientset(&v1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{Name: QuotaName, Namespace: "test-namespace"},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse(
+					"5Gi",
+				), // 👈 Existing quota is different
+			},
+		},
+	})
+	service := NewKubernetesNamespaceService(clientset)
+
+	// Simulate an API failure when calling `Update()`
+	clientset.PrependReactor(
+		"update",
+		"resourcequotas",
+		func(action k8stesting.Action) (bool, runtime.Object, error) {
+			return true, nil, errors.New("failed to update resource quota")
+		},
+	)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"} // 👈 Updated quota
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
+	assert.Error(t, err)
+	assert.Equal(t, interfaces.QuotaApplicationResult(""), result)
+	assert.Contains(t, err.Error(), "failed to update resource quota")
+}
+
+func TestApplyResourceQuotas_EmptyQuota(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	service := NewKubernetesNamespaceService(clientset)
+
+	quota := &domain.Quota{} // 👈 Empty quota should return "QuotaUnchanged"
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
+	assert.NoError(t, err)
+	assert.Equal(t, interfaces.QuotaUnchanged, result)
+}
+
+func TestApplyResourceQuotas_FailureConvertQuota(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	service := NewKubernetesNamespaceService(clientset)
+
+	// Simulate a quota that causes conversion failure
+	quota := &domain.Quota{
+		MemoryRequest: "invalid", // ❌ This will fail conversion
+	}
+
+	result, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+
+	assert.Error(t, err)
+	assert.Equal(t, interfaces.QuotaApplicationResult(""), result)
+	assert.Contains(t, err.Error(), "error converting quota to ResourceQuota")
+}
+
+func TestQuotasAreDifferent(t *testing.T) {
+	existing := &v1.ResourceQuota{
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse("5Gi"),
+			},
+		},
+	}
+
+	newQuota := &v1.ResourceQuota{
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse("10Gi"), // 👈 Different value
+			},
+		},
+	}
+
+	result := quotasAreDifferent(existing, newQuota)
+	assert.True(t, result, "Expected quotas to be different")
+}
+
+func TestQuotasAreDifferent_ExtraKeyInExistingQuota(t *testing.T) {
+	existing := &v1.ResourceQuota{
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse("10Gi"),
+				v1.ResourceRequestsCPU: resource.MustParse(
+					"5",
+				), // 👈 Extra key not present in newQuota
+			},
+		},
+	}
+
+	newQuota := &v1.ResourceQuota{
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse("10Gi"),
+			},
+		},
+	}
+
+	result := quotasAreDifferent(existing, newQuota)
+	assert.True(t, result, "Expected quotas to be different due to missing key in new quota")
+}
+
+func TestConvertQuotaToResourceMap_InvalidQuantity(t *testing.T) {
+	quota := domain.Quota{
+		MemoryRequest: "invalid-quantity",
+	}
+
+	result, err := convertQuotaToResourceMap(quota)
+
+	assert.Nil(t, result)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "quantities must match")
+}

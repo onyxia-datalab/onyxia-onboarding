@@ -119,6 +119,12 @@ func TestExtractStringArray(t *testing.T) {
 		},
 		{"Missing claim", map[string]any{}, "groups", nil},
 		{"Wrong format", map[string]any{"groups": "not-an-array"}, "groups", nil},
+		{
+			"Array with non-string values",
+			map[string]any{"groups": []any{"group1", 42, true, "group2"}},
+			"groups",
+			[]string{"group1", "group2"}, // should ignore non-string values
+		},
 	}
 
 	for _, tt := range tests {
