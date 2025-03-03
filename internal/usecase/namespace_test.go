@@ -89,7 +89,7 @@ func TestGetNamespaceAnnotations_LastLoginTimestamp(t *testing.T) {
 }
 
 func TestGetNamespaceAnnotations_UserAttributes(t *testing.T) {
-	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
+	mockUserCtx, _ := usercontext.NewFakeUserContext(&domain.User{
 		Attributes: map[string]any{
 			"user-attr1": "value1",
 			"user-attr2": "value2",
@@ -109,7 +109,7 @@ func TestGetNamespaceAnnotations_UserAttributes(t *testing.T) {
 }
 
 func TestGetNamespaceAnnotations_AllAnnotations(t *testing.T) {
-	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
+	mockUserCtx, _ := usercontext.NewFakeUserContext(&domain.User{
 		Attributes: map[string]any{
 			"user-attr1": "value1",
 		},
