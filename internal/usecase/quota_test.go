@@ -176,6 +176,30 @@ func TestGetQuota_GroupQuota(t *testing.T) {
 	assert.Equal(t, &quotas.Group, quota)
 }
 
+func TestGetGroupQuota_FallbackToDefault(t *testing.T) {
+	mockService := new(MockNamespaceService)
+	quotas := domain.Quotas{
+		Enabled:      true,
+		GroupEnabled: false,                               // ❌ Group quotas disabled
+		Default:      domain.Quota{MemoryRequest: "10Gi"}, // ✅ Default quota exists
+		Group:        domain.Quota{MemoryRequest: "20Gi"}, // 🚨 Should not be used
+	}
+	usecase := setupPrivateUsecase(mockService, quotas)
+
+	groupName := testGroupName
+	req := domain.OnboardingRequest{UserName: testUserName, Group: &groupName}
+
+	quota := usecase.getGroupQuota(context.Background(), req, userNamespace)
+
+	// ✅ Expected: Fallback to `quotas.Default`
+	assert.Equal(
+		t,
+		&quotas.Default,
+		quota,
+		"Expected fallback to default quota when group quotas are disabled",
+	)
+}
+
 func TestGetQuota_UserQuota(t *testing.T) {
 	mockService := new(MockNamespaceService)
 	quotas := domain.Quotas{
