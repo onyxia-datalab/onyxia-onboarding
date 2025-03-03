@@ -17,7 +17,15 @@ import (
 
 func main() {
 
-	app := bootstrap.NewApplication()
+	app, err := bootstrap.NewApplication()
+
+	if err != nil {
+		slog.Error("failed to initialize application",
+			slog.Any("error", err),
+		)
+		os.Exit(1)
+	}
+
 	env := app.Env
 
 	r := chi.NewRouter()
@@ -50,7 +58,7 @@ func main() {
 		MaxAge:           300,
 	}).Handler)
 
-	if err := route.Setup(&app, r); err != nil {
+	if err := route.Setup(app, r); err != nil {
 		slog.Error("failed to set up routes: %v", slog.Any("error", err))
 		os.Exit(1)
 	}

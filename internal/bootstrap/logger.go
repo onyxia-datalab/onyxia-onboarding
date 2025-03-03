@@ -12,7 +12,14 @@ import (
 
 // InitLogger initializes the global logger and handles log flushing on exit.
 func InitLogger(userReaderCtx interfaces.UserContextReader) {
-	logger := logging.NewLogger(userReaderCtx)
+	logger, err := logging.NewLogger(userReaderCtx)
+
+	if err != nil {
+		slog.Default().
+			Error("Failed to initialize logger", slog.Any("error", err))
+		os.Exit(1)
+	}
+
 	slog.SetDefault(logger)
 
 	// Setup graceful shutdown
