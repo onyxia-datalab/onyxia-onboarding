@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.5...v0.1.6) (2025-03-03)
+
+
+### Features
+
+* add helm chart and oci push action ([#48](https://github.com/onyxia-datalab/onyxia-onboarding/issues/48)) ([40547f0](https://github.com/onyxia-datalab/onyxia-onboarding/commit/40547f04f8125991ef3865529e4e15d7890b383e))
+
 ## [0.1.5](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.4...v0.1.5) (2025-02-27)
 
 
