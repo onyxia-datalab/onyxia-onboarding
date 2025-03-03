@@ -30,8 +30,11 @@ func InitLogger(userReaderCtx interfaces.UserContextReader) {
 		<-stop
 		slog.Info("Flushing logs before exit...")
 
-		logging.FlushLogger()
-		slog.Info("Logs successfully flushed")
+		if err := logging.FlushLogger(); err != nil {
+			slog.Error("Failed to flush logs", slog.Any("error", err))
+		} else {
+			slog.Info("Logs successfully flushed")
+		}
 
 		os.Exit(0)
 	}()
