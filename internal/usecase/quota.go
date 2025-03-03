@@ -23,13 +23,6 @@ func (s *onboardingUsecase) applyQuotas(
 
 	quotaToApply := s.getQuota(ctx, req, namespace)
 
-	if quotaToApply == nil {
-		slog.WarnContext(ctx, "⚠️ No applicable quota found",
-			slog.String("namespace", namespace),
-		)
-		return nil
-	}
-
 	result, err := s.namespaceService.ApplyResourceQuotas(ctx, namespace, quotaToApply)
 	if err != nil {
 		slog.ErrorContext(ctx, "❌ Failed to apply quotas",
@@ -68,11 +61,7 @@ func (s *onboardingUsecase) getQuota(
 ) *domain.Quota {
 	// ✅ If a group is set, check if group quotas are enabled
 	if req.Group != nil {
-		if s.quotas.GroupEnabled {
-			return s.getGroupQuota(ctx, req, namespace)
-		}
-		// ❌ Group is set, but group quotas are disabled → No quota applied
-		return nil
+		return s.getGroupQuota(ctx, req, namespace)
 	}
 
 	// ✅ Otherwise, apply user quota (roles first)
@@ -84,11 +73,14 @@ func (s *onboardingUsecase) getGroupQuota(
 	req domain.OnboardingRequest,
 	namespace string,
 ) *domain.Quota {
-	slog.InfoContext(ctx, "🔹 Applying group quota",
-		slog.String("namespace", namespace),
-		slog.String("group", *req.Group),
-	)
-	return &s.quotas.Group
+	if s.quotas.GroupEnabled {
+		slog.InfoContext(ctx, "🔹 Applying group quota",
+			slog.String("namespace", namespace),
+			slog.String("group", *req.Group),
+		)
+		return &s.quotas.Group
+	}
+	return &s.quotas.Default
 }
 
 func (s *onboardingUsecase) getUserQuota(

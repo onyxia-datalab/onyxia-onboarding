@@ -80,6 +80,59 @@ func TestApplyQuotas_QuotasDisabled(t *testing.T) {
 	mockService.AssertNotCalled(t, "ApplyResourceQuotas")
 }
 
+func TestApplyQuotas_QuotaUpdated(t *testing.T) {
+	mockService := new(MockNamespaceService)
+	quotas := domain.Quotas{
+		Enabled: true,
+		Default: domain.Quota{MemoryRequest: "10Gi"},
+	}
+	usecase := setupPrivateUsecase(mockService, quotas)
+
+	mockService.On("ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default).
+		Return(interfaces.QuotaUpdated, nil)
+
+	err := usecase.applyQuotas(
+		context.Background(),
+		userNamespace,
+		domain.OnboardingRequest{UserName: testUserName},
+	)
+
+	assert.NoError(t, err)
+	mockService.AssertCalled(
+		t,
+		"ApplyResourceQuotas",
+		mock.Anything,
+		userNamespace,
+		&quotas.Default,
+	)
+}
+
+func TestApplyQuotas_QuotaIgnored(t *testing.T) {
+	mockService := new(MockNamespaceService)
+	quotas := domain.Quotas{
+		Enabled: true,
+		Default: domain.Quota{MemoryRequest: "10Gi"},
+	}
+	usecase := setupPrivateUsecase(mockService, quotas)
+
+	mockService.On("ApplyResourceQuotas", mock.Anything, userNamespace, &quotas.Default).
+		Return(interfaces.QuotaIgnored, nil)
+
+	err := usecase.applyQuotas(
+		context.Background(),
+		userNamespace,
+		domain.OnboardingRequest{UserName: testUserName},
+	)
+
+	assert.NoError(t, err)
+	mockService.AssertCalled(
+		t,
+		"ApplyResourceQuotas",
+		mock.Anything,
+		userNamespace,
+		&quotas.Default,
+	)
+}
 func TestApplyQuotas_Failure(t *testing.T) {
 	mockService := new(MockNamespaceService)
 	quotas := domain.Quotas{
@@ -121,6 +174,30 @@ func TestGetQuota_GroupQuota(t *testing.T) {
 	quota := usecase.getQuota(context.Background(), req, groupNamespace)
 
 	assert.Equal(t, &quotas.Group, quota)
+}
+
+func TestGetGroupQuota_FallbackToDefault(t *testing.T) {
+	mockService := new(MockNamespaceService)
+	quotas := domain.Quotas{
+		Enabled:      true,
+		GroupEnabled: false,                               // ❌ Group quotas disabled
+		Default:      domain.Quota{MemoryRequest: "10Gi"}, // ✅ Default quota exists
+		Group:        domain.Quota{MemoryRequest: "20Gi"}, // 🚨 Should not be used
+	}
+	usecase := setupPrivateUsecase(mockService, quotas)
+
+	groupName := testGroupName
+	req := domain.OnboardingRequest{UserName: testUserName, Group: &groupName}
+
+	quota := usecase.getGroupQuota(context.Background(), req, userNamespace)
+
+	// ✅ Expected: Fallback to `quotas.Default`
+	assert.Equal(
+		t,
+		&quotas.Default,
+		quota,
+		"Expected fallback to default quota when group quotas are disabled",
+	)
 }
 
 func TestGetQuota_UserQuota(t *testing.T) {

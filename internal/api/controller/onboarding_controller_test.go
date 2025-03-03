@@ -40,7 +40,7 @@ func setupController(
 
 func TestOnboardingController_Onboard_Success_NoGroup(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
+	mockUserCtx, _ := usercontext.NewFakeUserContext(&domain.User{
 		Username: "test-user",
 		Groups:   []string{"group1", "group2"},
 		Roles:    []string{"role1"},
@@ -60,7 +60,7 @@ func TestOnboardingController_Onboard_Success_NoGroup(t *testing.T) {
 
 func TestOnboardingController_Onboard_GetUserFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx, _ := usercontext.NewMockUserContext(nil) // ❌ GetUser fails
+	mockUserCtx, _ := usercontext.NewFakeUserContext(nil) // ❌ GetUser fails
 
 	controller := setupController(mockUsecase, mockUserCtx)
 	req := api.OnboardingRequest{Group: api.OptString{Value: "test-group", Set: true}}
@@ -74,7 +74,7 @@ func TestOnboardingController_Onboard_GetUserFails(t *testing.T) {
 
 func TestOnboardingController_Onboard_GroupValidationFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
+	mockUserCtx, _ := usercontext.NewFakeUserContext(&domain.User{
 		Username: "test-user",
 		Groups:   []string{"other-group"}, // ❌ Does not match "test-group"
 		Roles:    []string{"role1"},
@@ -92,7 +92,7 @@ func TestOnboardingController_Onboard_GroupValidationFails(t *testing.T) {
 
 func TestOnboardingController_Onboard_OnboardingFails(t *testing.T) {
 	mockUsecase := new(MockOnboardingUsecase)
-	mockUserCtx, _ := usercontext.NewMockUserContext(&domain.User{
+	mockUserCtx, _ := usercontext.NewFakeUserContext(&domain.User{
 		Username: "test-user",
 		Groups:   []string{"test-group"},
 		Roles:    []string{"role1"},

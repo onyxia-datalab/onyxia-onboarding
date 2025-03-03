@@ -82,19 +82,16 @@ func NewEnv() (*Env, error) {
 
 	viper.SetConfigType("yaml")
 
-	// ✅ Load embedded default config first
 	if err := viper.ReadConfig(bytes.NewReader(defaultConfig)); err != nil {
-		slog.Error("Failed to read embedded default config", slog.Any("error", err))
 		return nil, fmt.Errorf("failed to read embedded default config: %w", err)
 	} else {
 		slog.Info("Successfully loaded embedded default config")
 	}
 
-	// ✅ Now look for an external `env.yaml` in the project root
 	viper.SetConfigFile("env.yaml")
 	viper.AddConfigPath(".") // Look in root directory
 
-	// ✅ If `env.yaml` exists, merge it (it overrides embedded defaults)
+	// If `env.yaml` exists, merge it (it overrides embedded defaults)
 	if err := viper.MergeInConfig(); err == nil {
 		slog.Info("Loaded external config file", slog.String("file", "env.yaml"))
 	} else {
@@ -103,9 +100,7 @@ func NewEnv() (*Env, error) {
 
 	viper.AutomaticEnv()
 
-	// Map the environment variables to the Env struct
 	if err := viper.Unmarshal(&env); err != nil {
-		slog.Error("Failed to parse environment configuration", slog.Any("error", err))
 		return nil, fmt.Errorf("failed to parse environment configuration: %w", err)
 	}
 

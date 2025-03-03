@@ -1,8 +1,8 @@
 package bootstrap
 
 import (
+	"fmt"
 	"log/slog"
-	"os"
 
 	usercontext "github.com/onyxia-datalab/onyxia-onboarding/internal/infrastructure/context"
 	"github.com/onyxia-datalab/onyxia-onboarding/internal/infrastructure/kubernetes"
@@ -16,21 +16,20 @@ type Application struct {
 	UserContextWriter interfaces.UserContextWriter
 }
 
-func NewApplication() Application {
+func NewApplication() (*Application, error) {
 	userReader, userWriter := usercontext.NewUserContext()
 
 	InitLogger(userReader)
 
 	env, err := NewEnv()
 	if err != nil {
-		slog.Error("Failed to load environment", slog.Any("error", err))
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to load environment: %w", err)
+
 	}
 
 	k8sClient, err := kubernetes.NewKubernetesClient()
 	if err != nil {
-		slog.Error("Failed to initialize Kubernetes client", slog.Any("error", err))
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to initialize Kubernetes client: %w", err)
 	}
 
 	app := &Application{
@@ -42,5 +41,5 @@ func NewApplication() Application {
 
 	slog.Info("Application initialized successfully")
 
-	return *app
+	return app, nil
 }

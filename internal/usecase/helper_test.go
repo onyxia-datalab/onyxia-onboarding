@@ -45,7 +45,7 @@ func (m *MockNamespaceService) ApplyResourceQuotas(
 	return args.Get(0).(interfaces.QuotaApplicationResult), args.Error(1)
 }
 
-var mockUserContextReader, _ = usercontext.NewMockUserContext(&domain.User{
+var mockUserContextReader, _ = usercontext.NewFakeUserContext(&domain.User{
 	Username: testUserName,
 	Groups:   []string{testGroupName},
 	Roles:    []string{"role1"},

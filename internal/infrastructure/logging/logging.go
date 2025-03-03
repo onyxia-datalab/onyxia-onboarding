@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"log"
+	"fmt"
 	"log/slog"
 
 	"github.com/onyxia-datalab/onyxia-onboarding/internal/interfaces"
@@ -9,11 +9,12 @@ import (
 	"go.uber.org/zap/exp/zapslog"
 )
 
-func NewLogger(userReaderCtx interfaces.UserContextReader) *slog.Logger {
+func NewLogger(userReaderCtx interfaces.UserContextReader) (*slog.Logger, error) {
 	zapLogger, err := zap.NewProduction()
 
 	if err != nil {
-		log.Fatalf("Failed to initialize zap logger: %v", err)
+		return nil, fmt.Errorf("failed to initialize zap logger: %w", err)
+
 	}
 
 	baseHandler := zapslog.NewHandler(
@@ -23,12 +24,14 @@ func NewLogger(userReaderCtx interfaces.UserContextReader) *slog.Logger {
 
 	contextHandler := NewUserContextLogger(baseHandler, userReaderCtx)
 
-	return slog.New(contextHandler)
+	return slog.New(contextHandler), nil
 }
 
-func FlushLogger() {
+func FlushLogger() error {
 	logger := zap.L() // Get global zap logger
 	if err := logger.Sync(); err != nil {
 		slog.Error("Failed to flush logs", slog.Any("error", err))
+		return err
 	}
+	return nil
 }

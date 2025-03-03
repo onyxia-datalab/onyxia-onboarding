@@ -7,54 +7,54 @@ import (
 	"github.com/onyxia-datalab/onyxia-onboarding/internal/interfaces"
 )
 
-// MockUserContext is a test implementation of UserContextReader and UserContextWriter
-type MockUserContext struct {
+// FakeUserContext is a test implementation of UserContextReader and UserContextWriter.
+type FakeUserContext struct {
 	User *domain.User
 }
 
-func (m *MockUserContext) GetUser(ctx context.Context) (*domain.User, bool) {
-	if m.User == nil {
+func (f *FakeUserContext) GetUser(ctx context.Context) (*domain.User, bool) {
+	if f.User == nil {
 		return nil, false
 	}
-	return m.User, true
+	return f.User, true
 }
 
-func (m *MockUserContext) GetUsername(ctx context.Context) (string, bool) {
-	if m.User != nil {
-		return m.User.Username, true
+func (f *FakeUserContext) GetUsername(ctx context.Context) (string, bool) {
+	if f.User != nil {
+		return f.User.Username, true
 	}
 	return "", false
 }
 
-func (m *MockUserContext) GetGroups(ctx context.Context) ([]string, bool) {
-	if m.User != nil {
-		return m.User.Groups, true
+func (f *FakeUserContext) GetGroups(ctx context.Context) ([]string, bool) {
+	if f.User != nil {
+		return f.User.Groups, true
 	}
 	return nil, false
 }
 
-func (m *MockUserContext) GetRoles(ctx context.Context) ([]string, bool) {
-	if m.User != nil {
-		return m.User.Roles, true
+func (f *FakeUserContext) GetRoles(ctx context.Context) ([]string, bool) {
+	if f.User != nil {
+		return f.User.Roles, true
 	}
 	return nil, false
 }
 
-func (m *MockUserContext) GetAttributes(ctx context.Context) (map[string]any, bool) {
-	if m.User != nil {
-		return m.User.Attributes, true
+func (f *FakeUserContext) GetAttributes(ctx context.Context) (map[string]any, bool) {
+	if f.User != nil {
+		return f.User.Attributes, true
 	}
 	return nil, false
 }
 
-func (m *MockUserContext) WithUser(ctx context.Context, u *domain.User) context.Context {
-	m.User = u
+func (f *FakeUserContext) WithUser(ctx context.Context, u *domain.User) context.Context {
+	f.User = u
 	return ctx
 }
 
-// NewMockUserContext returns a mock implementation for tests.
-func NewMockUserContext(
+// NewFakeUserContext returns a test implementation of UserContextReader and UserContextWriter.
+func NewFakeUserContext(
 	user *domain.User,
 ) (interfaces.UserContextReader, interfaces.UserContextWriter) {
-	return &MockUserContext{User: user}, &MockUserContext{User: user}
+	return &FakeUserContext{User: user}, &FakeUserContext{User: user}
 }
