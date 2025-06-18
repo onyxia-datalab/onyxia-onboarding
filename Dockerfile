@@ -19,11 +19,11 @@ COPY internal/ internal/
 RUN --mount=target=. \
     --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg \
-    GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/app cmd/main.go
+    GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -o /out/app cmd/main.go
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
-COPY --from=builder /out/app /bin
+COPY --from=builder --chmod=0755 /out/app /
 USER 65532:65532
 
 ENTRYPOINT ["/app"]
