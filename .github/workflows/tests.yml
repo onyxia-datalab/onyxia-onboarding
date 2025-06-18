@@ -4,13 +4,10 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - "deploy/**"
+
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - "deploy/**"
 
 jobs:
   test:
