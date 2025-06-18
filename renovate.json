@@ -3,5 +3,12 @@
   "extends": ["config:recommended", ":semanticCommits"],
   "prHourlyLimit": 30,
   "prConcurrentLimit": 100,
-  "postUpdateOptions": ["gomodTidy"]
+  "postUpdateOptions": ["gomodTidy"],
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "go minor and patch updates",
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ]
 }
