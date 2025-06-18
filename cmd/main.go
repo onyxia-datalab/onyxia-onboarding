@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	"github.com/go-chi/httplog/v2"
+	"github.com/go-chi/httplog/v3"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/onyxia-datalab/onyxia-onboarding/internal/api/route"
@@ -30,13 +30,10 @@ func main() {
 
 	r := chi.NewRouter()
 
+	logger := slog.Default()
+
 	r.Use(
-		httplog.RequestLogger(
-			&httplog.Logger{
-				Logger:  slog.Default(),
-				Options: httplog.Options{Concise: true, RequestHeaders: true},
-			},
-		),
+		httplog.RequestLogger(logger, &httplog.Options{Level: slog.LevelInfo, RecoverPanics: true}),
 	)
 
 	r.Use(middleware.Recoverer)
