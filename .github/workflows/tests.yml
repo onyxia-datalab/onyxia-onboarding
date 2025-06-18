@@ -40,7 +40,7 @@ jobs:
       # We use golangci-lint-action instead of "make lint" because it runs faster in CI.
       # "make lint" requires installing golangci-lint manually, which is slow and unnecessary in this context.
       - name: Run linter
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           version: latest
           args: --timeout=5m
