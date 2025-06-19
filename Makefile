@@ -60,12 +60,25 @@ fmt:
 	@echo "🖌️  Formatting code..."
 	@go fmt ./...
 
-## lint: Run static analysis (auto-installs golangci-lint if missing)
+## lint: Run static analysis (auto-installs golangci-lint if missing or outdated)
 lint:
 	@echo "🔍 Running linter..."
-	@which golangci-lint >/dev/null 2>&1 || { echo "📥 Installing golangci-lint..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; }
-	@golangci-lint run --timeout=1m ./...
-
+	@mkdir -p $(GOBIN)
+	@LATEST=$$(curl -s https://api.github.com/repos/golangci/golangci-lint/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//'); \
+	if [ ! -x "$(GOBIN)/golangci-lint" ]; then \
+		echo "📥 golangci-lint not found. Installing $$LATEST..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) $$LATEST; \
+	else \
+		CURRENT=$$($(GOBIN)/golangci-lint --version | head -n1 | awk '{print $$4}'); \
+		if [ "$$CURRENT" != "$$LATEST" ]; then \
+			echo "📥 Updating golangci-lint from $$CURRENT to $$LATEST..."; \
+			curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) $$LATEST; \
+		else \
+			echo "✅ golangci-lint is up to date ($$CURRENT)"; \
+		fi; \
+	fi
+	@$(GOBIN)/golangci-lint run --timeout=1m ./...
+	
 ## test: Run Unit tests
 test: 
 	@echo "✅ Running unit tests..."
