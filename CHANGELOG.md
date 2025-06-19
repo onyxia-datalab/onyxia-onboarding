@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.6](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.5...v0.1.6) (2025-06-19)
+
+
+### Features
+
+* add helm chart and oci push action ([#48](https://github.com/onyxia-datalab/onyxia-onboarding/issues/48)) ([40547f0](https://github.com/onyxia-datalab/onyxia-onboarding/commit/40547f04f8125991ef3865529e4e15d7890b383e))
+
+
+### Bug Fixes
+
+* **Dockerfile:** app path & go compile option for distroless image ([#61](https://github.com/onyxia-datalab/onyxia-onboarding/issues/61)) ([3de4f94](https://github.com/onyxia-datalab/onyxia-onboarding/commit/3de4f945035fd8692c93b12e2196fd41d7a10c25))
+
 ## [0.1.5](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.4...v0.1.5) (2025-02-27)
 
 
