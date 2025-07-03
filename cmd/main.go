@@ -55,10 +55,18 @@ func main() {
 		MaxAge:           300,
 	}).Handler)
 
-	if err := route.Setup(app, r); err != nil {
-		slog.Error("failed to set up routes: %v", slog.Any("error", err))
+	apiHandler, err := route.Setup(app)
+	if err != nil {
+		slog.Error("failed to set up routes", slog.Any("error", err))
 		os.Exit(1)
 	}
+
+	r.Mount(
+		env.Server.ContextPath,
+		http.StripPrefix(env.Server.ContextPath, apiHandler),
+	)
+
+	slog.Info("API mounted", slog.String("contextPath", env.Server.ContextPath))
 
 	address := fmt.Sprintf(":%d", env.Server.Port)
 
