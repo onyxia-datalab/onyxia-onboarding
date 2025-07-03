@@ -8,11 +8,10 @@ import (
 	middleware "github.com/onyxia-datalab/onyxia-onboarding/internal/api/middleware"
 	oas "github.com/onyxia-datalab/onyxia-onboarding/internal/api/oas"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/onyxia-datalab/onyxia-onboarding/internal/bootstrap"
 )
 
-func Setup(app *bootstrap.Application, r *chi.Mux) error {
+func Setup(app *bootstrap.Application) (http.Handler, error) {
 
 	auth, err := middleware.OidcMiddleware(context.Background(),
 		app.Env.AuthenticationMode,
@@ -21,7 +20,7 @@ func Setup(app *bootstrap.Application, r *chi.Mux) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to initialize OIDC middleware: %w", err)
+		return nil, fmt.Errorf("failed to initialize OIDC middleware: %w", err)
 	}
 
 	onboardingController := SetupOnboardingController(app)
@@ -34,9 +33,8 @@ func Setup(app *bootstrap.Application, r *chi.Mux) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to create api server: %w", err)
+		return nil, fmt.Errorf("failed to create api server: %w", err)
 	}
 
-	r.Mount("/", http.HandlerFunc(srv.ServeHTTP))
-	return nil
+	return srv, nil
 }
