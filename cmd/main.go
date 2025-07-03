@@ -38,7 +38,7 @@ func main() {
 
 	r.Use(middleware.Recoverer)
 
-	r.Use(middleware.Heartbeat("/healthz"))
+	r.Use(middleware.Heartbeat("/"))
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins: env.Security.CORSAllowedOrigins,
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
