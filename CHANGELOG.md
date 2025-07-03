@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.7](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.6...v0.1.7) (2025-07-03)
+
+
+### Features
+
+* add contextPath ([#65](https://github.com/onyxia-datalab/onyxia-onboarding/issues/65)) ([2359a91](https://github.com/onyxia-datalab/onyxia-onboarding/commit/2359a91c2031a435bc003479decd1bb4213fd93b))
+
+
+### Bug Fixes
+
+* **deps:** update go minor and patch updates ([#63](https://github.com/onyxia-datalab/onyxia-onboarding/issues/63)) ([add1a05](https://github.com/onyxia-datalab/onyxia-onboarding/commit/add1a05661e3024481f6c56e531aee438568b1b3))
+* **deps:** update module github.com/go-chi/chi/v5 to v5.2.2 [security] ([#64](https://github.com/onyxia-datalab/onyxia-onboarding/issues/64)) ([ef95327](https://github.com/onyxia-datalab/onyxia-onboarding/commit/ef95327a6cba6102d44d930f8f4b8df382d4d997))
+
 ## [0.1.6](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.5...v0.1.6) (2025-06-19)
 
 
