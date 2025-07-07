@@ -175,6 +175,20 @@ func (a *oidcAuth) validateAudience(claims map[string]any) error {
 			slog.Error("❌ Invalid audience", slog.String("expected", a.Audience), slog.Any("got", v))
 			return fmt.Errorf("invalid audience: expected %q, got %v", a.Audience, v)
 		}
+	case []interface{}:
+		strs := make([]string, 0, len(v))
+		for _, item := range v {
+			s, ok := item.(string)
+			if !ok {
+				slog.Error("❌ Audience element is not a string", slog.Any("item", item))
+				return fmt.Errorf("audience element is not a string: %v", item)
+			}
+			strs = append(strs, s)
+		}
+		if !slices.Contains(strs, a.Audience) {
+			slog.Error("❌ Invalid audience", slog.String("expected", a.Audience), slog.Any("got", strs))
+			return fmt.Errorf("invalid audience: expected %q, got %v", a.Audience, strs)
+		}
 	default:
 		slog.Error("❌ Unexpected audience format", slog.Any("aud", v))
 		return fmt.Errorf("invalid audience format")
