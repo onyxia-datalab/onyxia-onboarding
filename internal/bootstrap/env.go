@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -70,7 +71,6 @@ type Onboarding struct {
 }
 
 type Env struct {
-	AppEnv             string     `mapstructure:"appEnv"             json:"appEnv"`
 	AuthenticationMode string     `mapstructure:"authenticationMode" json:"authenticationMode"`
 	Server             Server     `mapstructure:"server"             json:"server"`
 	OIDC               OIDC       `mapstructure:"oidc"               json:"oidc"`
@@ -99,6 +99,7 @@ func NewEnv() (*Env, error) {
 		slog.Warn("No external config file found, using embedded defaults")
 	}
 
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	if err := viper.Unmarshal(&env); err != nil {

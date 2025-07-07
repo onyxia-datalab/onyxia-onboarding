@@ -118,10 +118,9 @@ The configuration is loaded using **Viper** and can be provided via:
 
 #### **General**
 
-| Variable             | Description                               | Default       |
-| -------------------- | ----------------------------------------- | ------------- |
-| `appEnv`             | Application environment (e.g., dev, prod) | `development` |
-| `authenticationMode` | Authentication mode (none, oidc)          | `none`        |
+| Variable             | Description                      | Default |
+| -------------------- | -------------------------------- | ------- |
+| `authenticationMode` | Authentication mode (none, oidc) | `none`  |
 
 #### **Server**
 
