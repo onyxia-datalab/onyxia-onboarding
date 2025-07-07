@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.7...v0.1.8) (2025-07-07)
+
+
+### Bug Fixes
+
+* add EnvKeyReplacer to support environment variables with nested … ([#67](https://github.com/onyxia-datalab/onyxia-onboarding/issues/67)) ([a29352a](https://github.com/onyxia-datalab/onyxia-onboarding/commit/a29352aa4d355e723e163b4a2318797ad647958e))
+
 ## [0.1.7](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.6...v0.1.7) (2025-07-03)
 
 
