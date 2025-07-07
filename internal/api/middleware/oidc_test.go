@@ -36,6 +36,17 @@ func TestValidateAudience(t *testing.T) {
 			false,
 		},
 		{
+			"Valid array audience from interface slice",
+			&oidcAuth{Audience: "onyxia-onboarding"},
+			map[string]any{"aud": []interface{}{"service1", "onyxia-onboarding"}},
+			false,
+		}, {
+			"Invalid array audience from interface slice with non-string",
+			&oidcAuth{Audience: "onyxia-onboarding"},
+			map[string]any{"aud": []interface{}{"onyxia-onboarding", 42}},
+			true,
+		},
+		{
 			"Missing audience in token",
 			&oidcAuth{Audience: "onyxia-onboarding"},
 			map[string]any{},
