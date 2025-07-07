@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.8...v0.1.9) (2025-07-07)
+
+
+### Bug Fixes
+
+* **oidc:** support audience claim as []interface{} in JWT token ([#69](https://github.com/onyxia-datalab/onyxia-onboarding/issues/69)) ([d1bac73](https://github.com/onyxia-datalab/onyxia-onboarding/commit/d1bac730b11d0ac5225c12d451431c82d08efbec))
+
 ## [0.1.8](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.7...v0.1.8) (2025-07-07)
 
 
