@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.10](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.9...v0.1.10) (2025-07-16)
+
+
+### Bug Fixes
+
+* **deps:** update go minor and patch updates to v0.33.3 ([#71](https://github.com/onyxia-datalab/onyxia-onboarding/issues/71)) ([2a248c9](https://github.com/onyxia-datalab/onyxia-onboarding/commit/2a248c91f3e91200e9406f1d0749090b207248df))
+
 ## [0.1.9](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.8...v0.1.9) (2025-07-07)
 
 
