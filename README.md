@@ -148,12 +148,13 @@ The configuration is loaded using **Viper** and can be provided via:
 
 #### **Onboarding Configuration**
 
-| Variable               | Description                     | Default   |
-| ---------------------- | ------------------------------- | --------- |
-| `namespacePrefix`      | Prefix for user namespaces      | `user-`   |
-| `groupNamespacePrefix` | Prefix for group namespaces     | `projet-` |
-| `annotations`          | See [Annotations](#annotations) |           |
-| `quotas`               | See [Quotas](#quotas)           |           |
+| Variable               | Description                                                                    | Default                      |
+| ---------------------- | ------------------------------------------------------------------------------ | ---------------------------- |
+| `namespacePrefix`      | Prefix for user namespaces                                                     | `user-`                      |
+| `groupNamespacePrefix` | Prefix for group namespaces                                                    | `projet-`                    |
+| `namespaceLabels`      | Static labels to add to the namespace (at creation and subsequent user logins) | `{ "created-by": "onyxia" }` |
+| `annotations`          | See [Annotations](#annotations)                                                |                              |
+| `quotas`               | See [Quotas](#quotas)                                                          |                              |
 
 ##### **Annotations**
 

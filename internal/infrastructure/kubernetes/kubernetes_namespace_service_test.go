@@ -22,7 +22,7 @@ func TestCreateNamespace_Success(t *testing.T) {
 	clientset := fake.NewSimpleClientset()
 	service := NewKubernetesNamespaceService(clientset)
 
-	result, err := service.CreateNamespace(context.Background(), "test-namespace", nil)
+	result, err := service.CreateNamespace(context.Background(), "test-namespace", nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.NamespaceCreated, result)
@@ -40,7 +40,7 @@ func TestCreateNamespace_AlreadyExists(t *testing.T) {
 	})
 	service := NewKubernetesNamespaceService(clientset)
 
-	result, err := service.CreateNamespace(context.Background(), "test-namespace", nil)
+	result, err := service.CreateNamespace(context.Background(), "test-namespace", nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.NamespaceAlreadyExists, result)
@@ -57,6 +57,7 @@ func TestCreateNamespace_AlreadyExists_NoAnnotations(t *testing.T) {
 		context.Background(),
 		"test-namespace",
 		map[string]string{},
+		nil,
 	)
 
 	assert.NoError(t, err)
@@ -97,7 +98,12 @@ func TestCreateNamespace_UpdateAnnotations(t *testing.T) {
 		},
 	)
 
-	result, err := service.CreateNamespace(context.Background(), "test-namespace", newAnnotations)
+	result, err := service.CreateNamespace(
+		context.Background(),
+		"test-namespace",
+		newAnnotations,
+		nil,
+	)
 
 	assert.NoError(t, err)
 	assert.Equal(t, interfaces.NamespaceAnnotationsUpdated, result)
@@ -113,7 +119,7 @@ func TestCreateNamespace_Failure(t *testing.T) {
 			return true, nil, errors.New("simulated API failure")
 		})
 
-	result, err := service.CreateNamespace(context.Background(), "error-namespace", nil)
+	result, err := service.CreateNamespace(context.Background(), "error-namespace", nil, nil)
 
 	assert.Error(t, err)
 	assert.Equal(t, interfaces.NamespaceCreationResult(""), result)
@@ -135,7 +141,7 @@ func TestCreateNamespace_FailurePatch(t *testing.T) {
 	result, err := service.CreateNamespace(
 		context.Background(),
 		"test-namespace",
-		map[string]string{"new-key": "new-value"},
+		map[string]string{"new-key": "new-value"}, nil,
 	)
 
 	assert.Error(t, err)
@@ -354,6 +360,61 @@ func TestApplyResourceQuotas_FailureConvertQuota(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, interfaces.QuotaApplicationResult(""), result)
 	assert.Contains(t, err.Error(), "error converting quota to ResourceQuota")
+}
+
+func TestApplyResourceQuotas_LabelOnCreate(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	service := NewKubernetesNamespaceService(clientset)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"}
+
+	clientset.PrependReactor("create", "resourcequotas",
+		func(action k8stesting.Action) (bool, runtime.Object, error) {
+			createAction := action.(k8stesting.CreateAction)
+			obj := createAction.GetObject().(*v1.ResourceQuota)
+
+			labels := obj.GetLabels()
+			assert.Equal(t, "onyxia", labels["created-by"], "Expected label 'created-by: onyxia'")
+
+			return false, nil, nil // let the clientset handle creation
+		},
+	)
+
+	_, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+	assert.NoError(t, err)
+}
+
+func TestApplyResourceQuotas_LabelOnUpdate(t *testing.T) {
+	clientset := fake.NewSimpleClientset(&v1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      QuotaName,
+			Namespace: "test-namespace",
+			Labels:    map[string]string{"created-by": "onyxia"},
+		},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceRequestsMemory: resource.MustParse("5Gi"),
+			},
+		},
+	})
+
+	service := NewKubernetesNamespaceService(clientset)
+
+	clientset.PrependReactor("update", "resourcequotas",
+		func(action k8stesting.Action) (bool, runtime.Object, error) {
+			updateAction := action.(k8stesting.UpdateAction)
+			obj := updateAction.GetObject().(*v1.ResourceQuota)
+
+			labels := obj.GetLabels()
+			assert.Equal(t, "onyxia", labels["created-by"], "Expected label 'created-by: onyxia'")
+
+			return false, nil, nil // let clientset do the actual update
+		},
+	)
+
+	quota := &domain.Quota{MemoryRequest: "10Gi"}
+	_, err := service.ApplyResourceQuotas(context.Background(), "test-namespace", quota)
+	assert.NoError(t, err)
 }
 
 func TestQuotasAreDifferent(t *testing.T) {

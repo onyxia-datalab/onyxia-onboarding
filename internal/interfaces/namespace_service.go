@@ -23,7 +23,11 @@ const (
 )
 
 type NamespaceService interface {
-	CreateNamespace(ctx context.Context, name string, annotations map[string]string,
+	CreateNamespace(
+		ctx context.Context,
+		name string,
+		annotations map[string]string,
+		labels map[string]string,
 	) (NamespaceCreationResult, error)
 	ApplyResourceQuotas(
 		ctx context.Context,

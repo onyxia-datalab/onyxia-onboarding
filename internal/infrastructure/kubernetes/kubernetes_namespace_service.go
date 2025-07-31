@@ -32,6 +32,7 @@ func (s *KubernetesNamespaceService) CreateNamespace(
 	ctx context.Context,
 	name string,
 	annotations map[string]string,
+	labels map[string]string,
 ) (interfaces.NamespaceCreationResult, error) {
 	namespacesClient := s.clientset.CoreV1().Namespaces()
 
@@ -39,6 +40,7 @@ func (s *KubernetesNamespaceService) CreateNamespace(
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Annotations: annotations,
+			Labels:      labels,
 		},
 	}
 
@@ -58,6 +60,7 @@ func (s *KubernetesNamespaceService) CreateNamespace(
 		patchData := map[string]interface{}{
 			"metadata": map[string]interface{}{
 				"annotations": annotations,
+				"labels":      labels,
 			},
 		}
 

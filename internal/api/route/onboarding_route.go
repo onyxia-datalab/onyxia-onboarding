@@ -28,6 +28,7 @@ func SetupOnboardingController(
 		domain.Namespace{
 			NamespacePrefix:      app.Env.Onboarding.NamespacePrefix,
 			GroupNamespacePrefix: app.Env.Onboarding.GroupNamespacePrefix,
+			NamespaceLabels:      app.Env.Onboarding.NamespaceLabels,
 			Annotation: domain.Annotation{
 				Enabled: app.Env.Onboarding.Annotation.Enabled,
 				Static:  app.Env.Onboarding.Annotation.Static,

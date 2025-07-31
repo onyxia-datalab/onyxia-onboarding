@@ -12,4 +12,5 @@ type Namespace struct {
 	NamespacePrefix      string
 	GroupNamespacePrefix string
 	Annotation           Annotation
+	NamespaceLabels      map[string]string
 }

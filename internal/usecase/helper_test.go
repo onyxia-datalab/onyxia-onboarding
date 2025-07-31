@@ -31,6 +31,7 @@ func (m *MockNamespaceService) CreateNamespace(
 	ctx context.Context,
 	name string,
 	annotations map[string]string,
+	labels map[string]string,
 ) (interfaces.NamespaceCreationResult, error) {
 	args := m.Called(ctx, name)
 	return args.Get(0).(interfaces.NamespaceCreationResult), args.Error(1)
@@ -63,6 +64,7 @@ func setupUsecase(
 		domain.Namespace{
 			NamespacePrefix:      namespacePrefix,
 			GroupNamespacePrefix: groupNamespacePref,
+			NamespaceLabels:      nil,
 			Annotation: domain.Annotation{
 				Enabled: false,
 				Static:  nil,

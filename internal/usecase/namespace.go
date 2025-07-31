@@ -14,6 +14,7 @@ func (s *onboardingUsecase) createNamespace(ctx context.Context, name string) er
 		ctx,
 		name,
 		s.getNamespaceAnnotations(ctx),
+		s.namespace.NamespaceLabels,
 	)
 
 	slog.Info("result create Namespace", slog.String("result", string(result)))

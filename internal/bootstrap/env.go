@@ -64,10 +64,11 @@ type Annotation struct {
 	} `mapstructure:"dynamic" json:"dynamic"`
 }
 type Onboarding struct {
-	NamespacePrefix      string     `mapstructure:"namespacePrefix"      json:"namespacePrefix"`
-	GroupNamespacePrefix string     `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
-	Annotation           Annotation `mapstructure:"annotations"          json:"annotations"`
-	Quotas               Quotas     `mapstructure:"quotas"               json:"quotas"`
+	NamespacePrefix      string            `mapstructure:"namespacePrefix"      json:"namespacePrefix"`
+	NamespaceLabels      map[string]string `mapstructure:"namespaceLabels"      json:"labels"`
+	GroupNamespacePrefix string            `mapstructure:"groupNamespacePrefix" json:"groupNamespacePrefix"`
+	Annotation           Annotation        `mapstructure:"annotations"          json:"annotations"`
+	Quotas               Quotas            `mapstructure:"quotas"               json:"quotas"`
 }
 
 type Env struct {
