@@ -111,7 +111,6 @@ func (s *KubernetesNamespaceService) ApplyResourceQuotas(
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      QuotaName,
 			Namespace: namespace,
-			//TODO : use namespace labels from env or ressourceQuota label ?
 			Labels: map[string]string{
 				"created-by": "onyxia",
 			},
