@@ -39,7 +39,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Use(middleware.Heartbeat("/"))
-	r.Use(cors.New(cors.Options{
+	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: env.Security.CORSAllowedOrigins,
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders: []string{
@@ -49,11 +49,12 @@ func main() {
 			"X-CSRF-Token",
 			"Origin",
 			"X-Requested-With",
+			"onyxia-region",
 		},
 		ExposedHeaders:   []string{"Link", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,
-	}).Handler)
+	}))
 
 	apiHandler, err := route.Setup(app)
 	if err != nil {
