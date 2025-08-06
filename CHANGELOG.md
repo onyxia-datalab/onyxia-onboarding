@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.11](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.10...v0.1.11) (2025-08-06)
+
+
+### Bug Fixes
+
+* cors issue due to onyxia-region header ([#75](https://github.com/onyxia-datalab/onyxia-onboarding/issues/75)) ([136fe46](https://github.com/onyxia-datalab/onyxia-onboarding/commit/136fe4616ccf2176a4a1916f1c03f5ceca9fa6fe))
+* **deps:** update module github.com/coreos/go-oidc/v3 to v3.15.0 ([#73](https://github.com/onyxia-datalab/onyxia-onboarding/issues/73)) ([4620649](https://github.com/onyxia-datalab/onyxia-onboarding/commit/4620649a396fa0a8100778589ee643aaa92d492d))
+
 ## [0.1.10](https://github.com/onyxia-datalab/onyxia-onboarding/compare/v0.1.9...v0.1.10) (2025-07-31)
 
 
