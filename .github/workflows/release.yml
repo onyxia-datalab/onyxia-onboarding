@@ -21,7 +21,7 @@ jobs:
           app-id: ${{ secrets.ONYXIA_BOT_APP_ID }}
           private-key: ${{ secrets.ONYXIA_BOT_PRIVATE_KEY }}
 
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           config-file: release-please-config.json
